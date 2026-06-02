@@ -12,7 +12,7 @@ export default function LayoutWrapper({
   const pathname = usePathname();
 
   const isAuthPage =
-    pathname.includes("login") || pathname.includes("register");
+    pathname.includes("login") || pathname.includes("register") || pathname.includes('chat');
 
   return (
     <>

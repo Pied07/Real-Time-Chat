@@ -1,13 +1,29 @@
 "use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { MessageCircle, Eye, EyeOff } from 'lucide-react';
+import React, { useState } from "react";
+import Link from "next/link";
+import { MessageCircle, Eye, EyeOff } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+
+      router.push("/chat");
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
@@ -24,11 +40,15 @@ export default function Login() {
 
         <div className="bg-zinc-900 border border-white/10 rounded-3xl p-10">
           <h2 className="text-3xl font-bold text-center mb-2">Welcome back</h2>
-          <p className="text-gray-400 text-center mb-8">Sign in to continue to your workspace</p>
+          <p className="text-gray-400 text-center mb-8">
+            Sign in to continue to your workspace
+          </p>
 
-          <form className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Email Address</label>
+              <label className="block text-sm font-medium mb-2">
+                Email Address
+              </label>
               <input
                 type="email"
                 value={email}
@@ -59,7 +79,10 @@ export default function Login() {
             </div>
 
             <div className="flex justify-end">
-              <Link href="/forgot-password" className="text-sm text-violet-400 hover:text-violet-300">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-violet-400 hover:text-violet-300"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -73,8 +96,11 @@ export default function Login() {
           </form>
 
           <div className="mt-8 text-center text-sm text-gray-400">
-            Don't have an account?{' '}
-            <Link href="/register" className="text-violet-400 hover:text-violet-300 font-medium">
+            Don't have an account?{" "}
+            <Link
+              href="/register"
+              className="text-violet-400 hover:text-violet-300 font-medium"
+            >
               Create one free
             </Link>
           </div>
@@ -86,7 +112,11 @@ export default function Login() {
           </div>
 
           <button className="w-full border border-white/10 hover:bg-white/5 py-4 rounded-2xl flex items-center justify-center gap-3 transition-colors">
-            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+            <img
+              src="https://www.google.com/favicon.ico"
+              alt="Google"
+              className="w-5 h-5"
+            />
             Continue with Google
           </button>
         </div>

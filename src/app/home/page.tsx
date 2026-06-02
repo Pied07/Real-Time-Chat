@@ -42,10 +42,10 @@ export default function Home() {
           </p>
 
           <div className="flex items-center justify-center gap-4">
-            <button className="px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl font-semibold text-lg flex items-center gap-3 hover:scale-105 transition-all active:scale-95">
+            <Link href="/chat" className="px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl font-semibold text-lg flex items-center gap-3 hover:scale-105 transition-all active:scale-95">
               Start Chatting Now
               <ArrowRight className="w-5 h-5" />
-            </button>
+            </Link>
             <button
               onClick={() => setShowVideo(true)}
               className="px-8 py-4 border border-white/20 rounded-2xl font-medium text-lg hover:bg-white/5 transition-all"
