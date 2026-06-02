@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { MessageCircle } from 'lucide-react';
 import { FaTwitter, FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa'
+import Link from 'next/link'
 
 
 function page() {
@@ -32,10 +33,10 @@ function page() {
             <div>
               <h3 className="font-semibold mb-4 text-white">Product</h3>
               <ul className="space-y-3 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Changelog</a></li>
+                <li><Link href="/feature" className="hover:text-white transition-colors">Features</Link></li>
+                {/* <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li> */}
+                <li><Link href="/integration" className="hover:text-white transition-colors">Integrations</Link></li>
+                <li><Link href="/changelog" className="hover:text-white transition-colors">Changelog</Link></li>
               </ul>
             </div>
 
@@ -43,10 +44,11 @@ function page() {
             <div>
               <h3 className="font-semibold mb-4 text-white">Company</h3>
               <ul className="space-y-3 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><Link href='/' className="hover:text-white transition-colors">Home</Link></li>
+                <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link href="/howitworks" className="hover:text-white transition-colors">How it Works</Link></li>
+                <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               </ul>
             </div>
 
