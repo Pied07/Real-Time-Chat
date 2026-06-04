@@ -7,7 +7,10 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { generateKeyPair } from "@/lib/EncryptDecrypt";
+import {
+  encryptPrivateKeyWithPassword,
+  generateKeyPair,
+} from "@/lib/EncryptDecrypt";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -22,7 +25,6 @@ export default function Signup() {
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { publicKey, privateKey } = await generateKeyPair();
 
     if (password !== confirmPassword) {
       alert("Passwords do not match");
@@ -37,6 +39,12 @@ export default function Signup() {
     setLoading(true);
 
     try {
+      const { publicKey, privateKey } = await generateKeyPair();
+      const encryptedPrivateKey = await encryptPrivateKeyWithPassword(
+        privateKey,
+        password,
+      );
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -59,12 +67,13 @@ export default function Signup() {
         publicKey, // ✅ STORE PUBLIC KEY
 
         // 🔥 Friend System
+        encryptedPrivateKey,
         friends: [],
         incomingRequests: [],
         outgoingRequests: [],
       });
 
-      localStorage.setItem("privateKey", privateKey);
+      sessionStorage.setItem("privateKey", privateKey);
 
       alert("Account created successfully!");
       router.push("/chat");

@@ -4,8 +4,14 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { MessageCircle, Eye, EyeOff } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import {
+  decryptPrivateKeyWithPassword,
+  encryptPrivateKeyWithPassword,
+  isWebCryptoAvailable,
+} from "@/lib/EncryptDecrypt";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +23,46 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      if (!isWebCryptoAvailable()) {
+        alert(
+          "E2EE needs HTTPS on other devices. Please open the app with https:// instead of http://192.168.x.x.",
+        );
+        return;
+      }
+
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      const userRef = doc(db, "users", userCredential.user.uid);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.data();
+
+      if (userData?.encryptedPrivateKey) {
+        const privateKey = await decryptPrivateKeyWithPassword(
+          userData.encryptedPrivateKey,
+          password,
+        );
+        sessionStorage.setItem("privateKey", privateKey);
+      } else {
+        const existingPrivateKey = localStorage.getItem("privateKey");
+
+        if (existingPrivateKey) {
+          const encryptedPrivateKey = await encryptPrivateKeyWithPassword(
+            existingPrivateKey,
+            password,
+          );
+          await updateDoc(userRef, { encryptedPrivateKey });
+          sessionStorage.setItem("privateKey", existingPrivateKey);
+          localStorage.removeItem("privateKey");
+        } else {
+          alert(
+            "Your account does not have a synced encrypted private key yet. Please sign in once on the original device first.",
+          );
+          return;
+        }
+      }
 
       router.push("/chat");
     } catch (error: any) {

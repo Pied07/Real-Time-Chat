@@ -15,10 +15,11 @@ import {
   serverTimestamp,
   doc,
   setDoc,
+  getDoc,
 } from "firebase/firestore";
 
 import {
-  encryptHybrid,
+  encryptHybridForRecipients,
   importPublicKey,
   decryptHybrid,
   importPrivateKey,
@@ -43,6 +44,10 @@ interface PendingFile {
   previewUrl?: string;
 }
 
+interface UserKeyProfile {
+  publicKey?: string;
+}
+
 interface ChatAreaProps {
   currentUser: any;
   selectedUser: any;
@@ -64,6 +69,9 @@ export default function ChatArea({
   const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
   const [sending, setSending] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [privateKeyLoaded, setPrivateKeyLoaded] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] =
+    useState<UserKeyProfile | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
@@ -78,17 +86,26 @@ export default function ChatArea({
   };
 
   useEffect(() => {
-    const loadKey = async () => {
-      if (!privateKeyRef.current) {
-        const keyString = localStorage.getItem("privateKey");
-        if (!keyString) return;
+    if (!currentUser?.uid) return;
 
-        privateKeyRef.current = await importPrivateKey(keyString);
+    const loadKey = async () => {
+      const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+      setCurrentUserProfile((userSnap.data() as UserKeyProfile) || null);
+
+      const keyString = sessionStorage.getItem("privateKey");
+
+      if (!keyString) {
+        console.error("Private key not found");
+        setPrivateKeyLoaded(false);
+        return;
       }
+
+      privateKeyRef.current = await importPrivateKey(keyString);
+      setPrivateKeyLoaded(true);
     };
 
     loadKey();
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     scrollToBottom();
@@ -115,13 +132,18 @@ export default function ChatArea({
           let decryptedText = "[Encrypted]";
 
           try {
-            if (privateKeyRef.current) {
+            const encryptedKey =
+              data.encryptedKeys?.[currentUser.uid] || data.encryptedKey;
+
+            if (privateKeyRef.current && encryptedKey) {
               decryptedText = await decryptHybrid(
                 data.cipherText,
-                data.encryptedKey,
+                encryptedKey,
                 data.iv,
                 privateKeyRef.current,
               );
+            } else {
+              console.warn("No private key available for decryption");
             }
           } catch (e) {
             console.log("Decryption failed:", e);
@@ -148,7 +170,7 @@ export default function ChatArea({
     });
 
     return unsubscribe;
-  }, [selectedUser, selectedGroup, currentUser]);
+  }, [selectedUser, selectedGroup, currentUser, privateKeyLoaded]);
 
   // Typing Indicator
   useEffect(() => {
@@ -167,7 +189,7 @@ export default function ChatArea({
         if (
           data.isTyping &&
           Date.now() - (data.lastTyped?.toDate?.() || new Date()).getTime() <
-            5000 &&
+          5000 &&
           docSnap.id !== currentUser.uid
         ) {
           currentlyTyping.push(
@@ -188,22 +210,32 @@ export default function ChatArea({
 
     setSending(true);
 
-    const receiverKey = await importPublicKey(selectedUser.publicKey);
+    if (selectedGroup) {
+      alert("Group E2EE is not set up yet.");
+      setSending(false);
+      return;
+    }
 
-    const { cipherText, encryptedKey, iv } = await encryptHybrid(
-      text,
-      receiverKey,
-    );
-    console.log("Original:", text);
-    console.log("CipherText:", cipherText);
-    console.log("EncryptedKey:", encryptedKey);
-    console.log("IV:", iv);
-
-    const chatId = selectedGroup
-      ? selectedGroup.id
-      : [currentUser.uid, selectedUser!.uid].sort().join("_");
+    if (!selectedUser?.publicKey || !currentUserProfile?.publicKey) {
+      alert("Missing public key for this chat.");
+      setSending(false);
+      return;
+    }
 
     try {
+      const [receiverKey, senderKey] = await Promise.all([
+        importPublicKey(selectedUser.publicKey),
+        importPublicKey(currentUserProfile.publicKey),
+      ]);
+
+      const { cipherText, encryptedKeys, iv } =
+        await encryptHybridForRecipients(text, [
+          { uid: selectedUser.uid, publicKey: receiverKey },
+          { uid: currentUser.uid, publicKey: senderKey },
+        ]);
+
+      const chatId = [currentUser.uid, selectedUser.uid].sort().join("_");
+
       let fileUrl: string | undefined;
       let fileType: string | undefined;
       let fileName: string | undefined;
@@ -216,7 +248,7 @@ export default function ChatArea({
 
       await addDoc(collection(db, "chats", chatId, "messages"), {
         cipherText,
-        encryptedKey,
+        encryptedKeys,
         iv,
         ...(fileUrl ? { fileUrl, fileType, fileName } : {}),
         senderId: currentUser.uid,
@@ -364,11 +396,10 @@ export default function ChatArea({
                 </div>
                 {msg.text && (
                   <div
-                    className={`px-6 py-4 rounded-3xl text-[17px] leading-relaxed whitespace-pre-wrap ${
-                      msg.isMe
+                    className={`px-6 py-4 rounded-3xl text-[17px] leading-relaxed whitespace-pre-wrap ${msg.isMe
                         ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-tr-none"
                         : "bg-zinc-900 rounded-tl-none"
-                    }`}
+                      }`}
                   >
                     {msg.text}
                   </div>
