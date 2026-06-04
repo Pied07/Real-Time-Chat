@@ -129,7 +129,7 @@ export default function GroupInfoModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col m-8">
         {/* Header */}
         <div className="flex justify-between items-center p-8 border-b border-white/10">
           <h2 className="text-3xl font-bold">Group Info</h2>
@@ -294,7 +294,7 @@ export default function GroupInfoModal({
       {/* Add Member Modal (Nested) */}
       {showAddMember && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
-          <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-lg p-8">
+          <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-lg m-8 p-8">
             <h3 className="text-2xl font-bold mb-6">Add Member</h3>
 
             {availableUsers.length === 0 ? (

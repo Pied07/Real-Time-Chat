@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import {
   collection,
   query,
@@ -12,7 +13,14 @@ import {
   documentId,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { UserPlus, Search, X, MessageCircle, Users, UserMinus } from "lucide-react";
+import {
+  UserPlus,
+  Search,
+  X,
+  MessageCircle,
+  Users,
+  UserMinus,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -228,12 +236,14 @@ export default function Sidebar({
   return (
     <div
       ref={sidebarRef}
-      className="border-r border-white/10 bg-zinc-950 flex flex-col relative"
-      style={{ width: `${sidebarWidth}px` }}
+      className="w-full lg:w-[var(--sidebar-width)] border-r border-white/10 bg-zinc-950 flex flex-col relative"
+      style={
+        { "--sidebar-width": `${sidebarWidth}px` } as CSSProperties
+      }
     >
       {/* Header */}
-      <div className="p-5 border-b border-white/10">
-        <div className="flex justify-between items-center mb-6">
+      <div className="p-4 sm:p-5 border-b border-white/10">
+        <div className="flex justify-between items-center mb-5 sm:mb-6">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl flex items-center justify-center">
               <MessageCircle className="w-5 h-5" />
@@ -250,12 +260,12 @@ export default function Sidebar({
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/10">
+      <div className="flex overflow-x-auto border-b border-white/10 scrollbar-hide">
         {["chats", "groups", "friends", "requests", "discover"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
-            className={`flex-1 py-4 text-sm font-medium transition-colors ${
+            className={`min-w-20 flex-1 py-3.5 sm:py-4 text-sm font-medium transition-colors ${
               activeTab === tab
                 ? "text-white border-b-2 border-violet-500"
                 : "text-gray-400 hover:text-gray-200"
@@ -271,7 +281,7 @@ export default function Sidebar({
       </div>
 
       {activeTab === "groups" && (
-        <div className="p-4 border-b border-white/10">
+        <div className="p-3 sm:p-4 border-b border-white/10">
           <div className="relative">
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
             <input
@@ -287,7 +297,7 @@ export default function Sidebar({
 
       {/* Search for Discover */}
       {activeTab === "discover" && (
-        <div className="p-4 border-b border-white/10">
+        <div className="p-3 sm:p-4 border-b border-white/10">
           <div className="relative">
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
             <input
@@ -301,7 +311,7 @@ export default function Sidebar({
         </div>
       )}
       {activeTab === "friends" && (
-        <div className="p-4 border-b border-white/10">
+        <div className="p-3 sm:p-4 border-b border-white/10">
           <div className="relative">
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
             <input
@@ -316,7 +326,7 @@ export default function Sidebar({
       )}
 
       {activeTab === "chats" && (
-        <div className="p-4 border-b border-white/10">
+        <div className="p-3 sm:p-4 border-b border-white/10">
           <div className="relative">
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
             <input
@@ -347,7 +357,7 @@ export default function Sidebar({
                     setSelectedGroup(null);
                     setSelectedUser(user);
                   }}
-                  className={`px-5 py-4 flex gap-4 hover:bg-white/5 cursor-pointer transition-colors ${
+                  className={`px-4 sm:px-5 py-4 flex gap-3 sm:gap-4 hover:bg-white/5 cursor-pointer transition-colors ${
                     isSelected ? "bg-white/10" : ""
                   }`}
                 >
@@ -393,7 +403,7 @@ export default function Sidebar({
                     setSelectedUser(null);
                     setSelectedGroup(group);
                   }}
-                  className={`px-5 py-4 flex gap-4 hover:bg-white/5 cursor-pointer transition-colors ${
+                  className={`px-4 sm:px-5 py-4 flex gap-3 sm:gap-4 hover:bg-white/5 cursor-pointer transition-colors ${
                     isSelected ? "bg-white/10" : ""
                   }`}
                 >
@@ -421,7 +431,7 @@ export default function Sidebar({
             filteredFriends.map((user) => (
               <div
                 key={user.uid}
-                className="px-5 py-4 flex gap-4 hover:bg-white/5 group"
+                className="px-4 sm:px-5 py-4 flex gap-3 sm:gap-4 hover:bg-white/5 group"
               >
                 <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0">
                   {user.avatar ? (
@@ -444,10 +454,10 @@ export default function Sidebar({
                 </div>
                 <button
                   onClick={() => removeFriend(user.uid)}
-                  className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 self-center px-3 py-1 rounded-xl hover:bg-red-500/10 transition-all"
+                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-red-400 hover:text-red-500 self-center px-3 py-1 rounded-xl hover:bg-red-500/10 transition-all"
                   title="Remove Friend"
                 >
-                 <UserMinus className="w-5 h-5" />
+                  <UserMinus className="w-5 h-5" />
                 </button>
               </div>
             ))
@@ -461,7 +471,7 @@ export default function Sidebar({
             </div>
           ) : (
             incomingRequests.map((user) => (
-              <div key={user.uid} className="p-5 border-b border-white/10">
+              <div key={user.uid} className="p-4 sm:p-5 border-b border-white/10">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-2xl overflow-hidden">
                     {user.avatar ? (
@@ -517,9 +527,9 @@ export default function Sidebar({
               return (
                 <div
                   key={user.uid}
-                  className="px-5 py-4 flex justify-between items-center hover:bg-white/5 group"
+                  className="px-4 sm:px-5 py-4 flex gap-3 justify-between items-center hover:bg-white/5 group"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                     <div className="w-12 h-12 rounded-2xl overflow-hidden">
                       {user.avatar ? (
                         <Image
@@ -535,9 +545,9 @@ export default function Sidebar({
                         </div>
                       )}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-gray-400">{user.email}</p>
+                      <p className="text-sm text-gray-400 truncate">{user.email}</p>
                     </div>
                   </div>
 
@@ -547,7 +557,7 @@ export default function Sidebar({
                         ? cancelFriendRequest(user.uid)
                         : sendFriendRequest(user.uid)
                     }
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all ${
+                    className={`flex shrink-0 items-center gap-2 px-3 sm:px-5 py-2.5 rounded-2xl text-sm font-medium transition-all ${
                       isRequested
                         ? "bg-red-500/10 text-red-400 hover:bg-red-500/20"
                         : "border border-violet-500 text-violet-400 hover:bg-violet-500 hover:text-white"
@@ -571,7 +581,7 @@ export default function Sidebar({
 
       {/* Resize Handle */}
       <div
-        className="absolute right-0 top-0 bottom-0 w-1 bg-transparent hover:bg-violet-500 cursor-col-resize"
+        className="hidden lg:block absolute right-0 top-0 bottom-0 w-1 bg-transparent hover:bg-violet-500 cursor-col-resize"
         onMouseDown={handleMouseDown}
       />
     </div>

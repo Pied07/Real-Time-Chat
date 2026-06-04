@@ -20,6 +20,7 @@ export default function ChatPage() {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showGroupInfo, setShowGroupInfo] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const hasActiveConversation = Boolean(selectedUser || selectedGroup);
 
   // Auth Listener
   useEffect(() => {
@@ -66,26 +67,42 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen bg-black text-white flex overflow-hidden">
+    <div className="h-dvh bg-black text-white flex overflow-hidden">
       {/* Sidebar */}
-      <Sidebar
-        currentUser={currentUser}
-        users={users}
-        selectedUser={selectedUser}
-        setSelectedUser={setSelectedUser}
-        selectedGroup={selectedGroup}
-        setSelectedGroup={setSelectedGroup}
-        onCreateGroup={() => setShowCreateGroup(true)}
-      />
+      <div
+        className={`h-full w-full lg:block lg:w-auto ${
+          hasActiveConversation ? "hidden" : "block"
+        }`}
+      >
+        <Sidebar
+          currentUser={currentUser}
+          users={users}
+          selectedUser={selectedUser}
+          setSelectedUser={setSelectedUser}
+          selectedGroup={selectedGroup}
+          setSelectedGroup={setSelectedGroup}
+          onCreateGroup={() => setShowCreateGroup(true)}
+        />
+      </div>
 
       {/* Chat Area */}
-      <ChatArea
-        currentUser={currentUser}
-        selectedUser={selectedUser}
-        selectedGroup={selectedGroup}
-        onOpenGroupInfo={() => setShowGroupInfo(true)}
-        onOpenProfile={() => setShowProfile(true)}
-      />
+      <div
+        className={`h-full min-w-0 flex-1 lg:flex ${
+          hasActiveConversation ? "flex" : "hidden"
+        }`}
+      >
+        <ChatArea
+          currentUser={currentUser}
+          selectedUser={selectedUser}
+          selectedGroup={selectedGroup}
+          onBack={() => {
+            setSelectedUser(null);
+            setSelectedGroup(null);
+          }}
+          onOpenGroupInfo={() => setShowGroupInfo(true)}
+          onOpenProfile={() => setShowProfile(true)}
+        />
+      </div>
 
       {/* Create Group Modal */}
       {showCreateGroup && (

@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Paperclip, Smile, X, FileText, User, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  Send,
+  Paperclip,
+  Smile,
+  X,
+  FileText,
+  User,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { EmojiClickData } from "emoji-picker-react";
@@ -52,6 +61,7 @@ interface ChatAreaProps {
   currentUser: any;
   selectedUser: any;
   selectedGroup: any;
+  onBack?: () => void;
   onOpenGroupInfo: () => void;
   onOpenProfile: () => void;
 }
@@ -60,6 +70,7 @@ export default function ChatArea({
   currentUser,
   selectedUser,
   selectedGroup,
+  onBack,
   onOpenGroupInfo,
   onOpenProfile,
 }: ChatAreaProps) {
@@ -315,36 +326,47 @@ export default function ChatArea({
 
   if (!selectedUser && !selectedGroup) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500 text-xl bg-zinc-950">
+      <div className="flex-1 hidden lg:flex items-center justify-center text-gray-500 text-xl bg-zinc-950">
         Select a friend or group to start chatting
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950">
+    <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-zinc-950">
       {/* Chat Header */}
-      <div className="h-20 border-b border-white/10 px-8 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-4">
+      <div className="h-16 sm:h-20 border-b border-white/10 px-3 sm:px-5 lg:px-8 flex items-center justify-between flex-shrink-0">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+          <button
+            onClick={onBack}
+            className="lg:hidden w-10 h-10 flex items-center justify-center text-gray-300 hover:text-white rounded-xl hover:bg-white/5"
+            title="Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           {selectedGroup ? (
             <>
-              <div className="w-11 h-11 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-2xl flex items-center justify-center text-3xl">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0">
                 👥
               </div>
-              <div>
-                <h3 className="font-semibold text-xl">{selectedGroup.name}</h3>
+              <div className="min-w-0">
+                <h3 className="font-semibold text-base sm:text-xl truncate">
+                  {selectedGroup.name}
+                </h3>
                 <p className="text-sm text-gray-400">
                   {selectedGroup.members.length} members
                 </p>
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 bg-zinc-700 rounded-2xl flex items-center justify-center text-3xl">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-zinc-700 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0">
                 {selectedUser?.name?.[0]?.toUpperCase() || "?"}
               </div>
-              <div>
-                <h3 className="font-semibold text-xl">{selectedUser?.name}</h3>
+              <div className="min-w-0">
+                <h3 className="font-semibold text-base sm:text-xl truncate">
+                  {selectedUser?.name}
+                </h3>
                 <p className="text-green-500 text-sm">Online</p>
               </div>
             </div>
@@ -354,7 +376,7 @@ export default function ChatArea({
         {selectedGroup ? (
           <button
             onClick={onOpenGroupInfo}
-            className="px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
+            className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
             title="View Group Info"
           >
             <Users />
@@ -362,7 +384,7 @@ export default function ChatArea({
         ) : (
           <button
             onClick={onOpenProfile}
-            className="px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
+            className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
             title="View Profile"
           >
             <User />
@@ -371,7 +393,7 @@ export default function ChatArea({
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 p-8 overflow-y-auto space-y-8 scrollbar-hide">
+      <div className="flex-1 p-3 sm:p-5 lg:p-8 overflow-y-auto space-y-5 sm:space-y-7 lg:space-y-8 scrollbar-hide">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-gray-500">
             <div className="text-6xl mb-4">👋</div>
@@ -388,7 +410,7 @@ export default function ChatArea({
                   {msg.senderName?.[0]?.toUpperCase() || "?"}
                 </div>
               )}
-              <div className="max-w-[65%]">
+              <div className="max-w-[82%] sm:max-w-[72%] lg:max-w-[65%] min-w-0">
                 <div
                   className={`text-xs text-gray-500 mb-1.5 px-2 ${msg.isMe ? "text-right" : ""}`}
                 >
@@ -396,7 +418,7 @@ export default function ChatArea({
                 </div>
                 {msg.text && (
                   <div
-                    className={`px-6 py-4 rounded-3xl text-[17px] leading-relaxed whitespace-pre-wrap ${msg.isMe
+                    className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-4 rounded-3xl text-[15px] sm:text-[16px] lg:text-[17px] leading-relaxed whitespace-pre-wrap break-words ${msg.isMe
                         ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-tr-none"
                         : "bg-zinc-900 rounded-tl-none"
                       }`}
@@ -450,8 +472,8 @@ export default function ChatArea({
       </div>
 
       {/* Input Area */}
-      <div className="p-6 border-t border-white/10 bg-zinc-950">
-        <div className="bg-zinc-900 rounded-3xl px-6 py-4 relative">
+      <div className="p-3 sm:p-5 lg:p-6 border-t border-white/10 bg-zinc-950">
+        <div className="bg-zinc-900 rounded-3xl px-3 sm:px-5 lg:px-6 py-3 sm:py-4 relative">
           {pendingFile && (
             <div className="mb-4 flex items-center gap-4 bg-zinc-950 p-4 rounded-2xl border border-white/10">
               {pendingFile.previewUrl ? (
@@ -480,8 +502,8 @@ export default function ChatArea({
             </div>
           )}
 
-          <div className="flex items-start gap-4">
-            <label className="cursor-pointer p-2 mt-1">
+          <div className="flex items-start gap-2 sm:gap-4">
+            <label className="cursor-pointer p-2 mt-1 flex-shrink-0">
               <input
                 type="file"
                 className="hidden"
@@ -495,7 +517,7 @@ export default function ChatArea({
             <button
               ref={emojiButtonRef}
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="p-2 mt-1"
+              className="p-2 mt-1 flex-shrink-0"
             >
               <Smile className="w-6 h-6 text-gray-400 hover:text-white" />
             </button>
@@ -512,14 +534,14 @@ export default function ChatArea({
                 (e.preventDefault(), sendMessage())
               }
               placeholder="Type a message..."
-              className="flex-1 bg-transparent outline-none text-lg placeholder:text-gray-500 resize-none py-3 max-h-32 scrollbar-hide"
+              className="min-w-0 flex-1 bg-transparent outline-none text-base sm:text-lg placeholder:text-gray-500 resize-none py-3 max-h-32 scrollbar-hide"
               rows={1}
             />
 
             <button
               onClick={sendMessage}
               disabled={(!newMessage.trim() && !pendingFile) || sending}
-              className="self-end p-3 text-violet-400 hover:text-violet-300 disabled:opacity-50"
+              className="self-end p-2 sm:p-3 text-violet-400 hover:text-violet-300 disabled:opacity-50 flex-shrink-0"
             >
               <Send className="w-6 h-6" />
             </button>
@@ -528,11 +550,11 @@ export default function ChatArea({
           {showEmojiPicker && (
             <div
               ref={pickerRef}
-              className="absolute bottom-full left-12 mb-2 z-50"
+              className="absolute bottom-full left-2 sm:left-12 mb-2 z-50"
             >
               <EmojiPicker
                 onEmojiClick={onEmojiClick}
-                width={320}
+                width={300}
                 height={400}
               />
             </div>

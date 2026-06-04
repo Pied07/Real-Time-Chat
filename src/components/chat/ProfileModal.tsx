@@ -35,7 +35,7 @@ function ProfileModal({ selectedUser, onClose }: ProfileModalProps) {
   console.log("Profile User:", profileUser);
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="relative bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-md p-8">
+      <div className="relative bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-md p-8 m-8">
         {profileUser?.avatar ? (
           <img
             src={profileUser.avatar}

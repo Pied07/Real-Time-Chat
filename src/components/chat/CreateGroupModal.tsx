@@ -43,9 +43,9 @@ export default function CreateGroupModal({ currentUser, users, onClose, onGroupC
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-lg p-8">
+      <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-lg p-4 m-8 h-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Create New Group</h2>
+          <h2 className="text-2xl lg:text-xl font-bold">Create New Group</h2>
           <button onClick={onClose} className="text-3xl text-gray-400 hover:text-white">
             <X />
           </button>
@@ -56,14 +56,14 @@ export default function CreateGroupModal({ currentUser, users, onClose, onGroupC
           placeholder="Group Name"
           value={groupName}
           onChange={(e) => setGroupName(e.target.value)}
-          className="w-full bg-zinc-800 border border-white/10 rounded-2xl px-5 py-4 mb-4"
+          className="w-full bg-zinc-800 border border-white/10 rounded-2xl px-5 py-4 mb-4 h-12"
         />
 
         <textarea
           placeholder="Description (optional)"
           value={groupDescription}
           onChange={(e) => setGroupDescription(e.target.value)}
-          className="w-full bg-zinc-800 border border-white/10 rounded-2xl px-5 py-4 mb-6 h-24"
+          className="w-full bg-zinc-800 border border-white/10 rounded-2xl px-5 py-4 mb-6 h-16 resize-none lg:h-24"
         />
 
         <p className="text-sm text-gray-400 mb-3">Select Members</p>
@@ -94,13 +94,13 @@ export default function CreateGroupModal({ currentUser, users, onClose, onGroupC
         </div>
 
         <div className="flex gap-4 mt-8">
-          <button onClick={onClose} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">
+          <button onClick={onClose} className="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">
             Cancel
           </button>
           <button
             onClick={createGroup}
             disabled={!groupName.trim()}
-            className="flex-1 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl font-semibold disabled:opacity-50"
+            className="flex-1 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl font-semibold disabled:opacity-50"
           >
             Create Group
           </button>
