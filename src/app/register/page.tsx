@@ -4,9 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { MessageCircle, Eye, EyeOff } from "lucide-react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
-import { db } from "@/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Signup() {
@@ -16,6 +15,8 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -26,30 +27,46 @@ export default function Signup() {
       return;
     }
 
+    if (!name.trim()) {
+      alert("Please enter your full name");
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password,
+        password
       );
 
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        uid: userCredential.user.uid,
-        name,
-        email,
+      const user = userCredential.user;
 
+      // Create user document with friend system fields
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        name: name.trim(),
+        email: user.email,
         avatar: "",
         bio: "",
-
         isOnline: true,
-
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+
+        // 🔥 Friend System Fields
+        friends: [],
+        incomingRequests: [],
+        outgoingRequests: [],
       });
 
+      alert("Account created successfully!");
       router.push("/chat");
     } catch (error: any) {
-      alert(error.message);
+      console.error(error);
+      alert(error.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,8 +98,11 @@ export default function Signup() {
               </label>
               <input
                 type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
                 className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-violet-500 transition-colors"
+                required
               />
             </div>
 
@@ -96,6 +116,7 @@ export default function Signup() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
                 className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-violet-500 transition-colors"
+                required
               />
             </div>
 
@@ -108,6 +129,7 @@ export default function Signup() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-violet-500 transition-colors"
+                  required
                 />
                 <button
                   type="button"
@@ -130,34 +152,32 @@ export default function Signup() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
                   className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-violet-500 transition-colors"
+                  required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-5 top-4 text-gray-400 hover:text-white"
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff size={20} />
-                  ) : (
-                    <Eye size={20} />
-                  )}
+                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
 
             <div className="flex items-center gap-3 text-sm">
-              <input type="checkbox" className="w-4 h-4 accent-violet-500" />
+              <input type="checkbox" className="w-4 h-4 accent-violet-500" required />
               <span className="text-gray-400">
-                I agree to the <span className="text-violet-400">Terms</span>{" "}
-                and <span className="text-violet-400">Privacy Policy</span>
+                I agree to the <span className="text-violet-400">Terms</span> and{" "}
+                <span className="text-violet-400">Privacy Policy</span>
               </span>
             </div>
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-4 rounded-2xl font-semibold text-lg hover:scale-105 transition-all active:scale-95"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-4 rounded-2xl font-semibold text-lg hover:scale-105 transition-all active:scale-95 disabled:opacity-70"
             >
-              Create Free Account
+              {loading ? "Creating Account..." : "Create Free Account"}
             </button>
           </form>
 
