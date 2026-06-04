@@ -43,10 +43,10 @@ export default function CreateGroupModal({ currentUser, users, onClose, onGroupC
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-lg p-4 m-8 h-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="relative bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-lg p-8 m-8 h-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl lg:text-xl font-bold">Create New Group</h2>
-          <button onClick={onClose} className="text-3xl text-gray-400 hover:text-white">
+          <button onClick={onClose} className="absolute top-4 right-4 text-3xl text-gray-400 hover:text-white">
             <X />
           </button>
         </div>
@@ -93,14 +93,14 @@ export default function CreateGroupModal({ currentUser, users, onClose, onGroupC
             ))}
         </div>
 
-        <div className="flex gap-4 mt-8">
-          <button onClick={onClose} className="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">
+        <div className="flex gap-4 mt-auto">
+          <button onClick={onClose} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">
             Cancel
           </button>
           <button
             onClick={createGroup}
             disabled={!groupName.trim()}
-            className="flex-1 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl font-semibold disabled:opacity-50"
+            className="flex-1 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl font-semibold disabled:opacity-50"
           >
             Create Group
           </button>

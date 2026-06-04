@@ -129,13 +129,13 @@ export default function GroupInfoModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col m-8">
+      <div className="relative bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col m-8">
         {/* Header */}
         <div className="flex justify-between items-center p-8 border-b border-white/10">
           <h2 className="text-3xl font-bold">Group Info</h2>
           <button
             onClick={onClose}
-            className="text-4xl text-gray-400 hover:text-white transition-colors"
+            className="absolute top-4 right-4 text-4xl text-gray-400 hover:text-white transition-colors"
           >
             <X />
           </button>
