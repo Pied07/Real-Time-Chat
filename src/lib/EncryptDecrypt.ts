@@ -290,16 +290,15 @@ export const decryptHybrid = async (
   if (!cipherText || !encryptedKey || !iv) {
     throw new Error("Missing encrypted fields");
   }
-  const subtle = getSubtleCrypto();
 
   // 1️⃣ Decrypt AES key
-  const aesKeyRaw = await subtle.decrypt(
+  const aesKeyRaw = await crypto.subtle.decrypt(
     { name: "RSA-OAEP" },
     privateKey,
     base64ToBuffer(encryptedKey),
   );
 
-  const aesKey = await subtle.importKey(
+  const aesKey = await crypto.subtle.importKey(
     "raw",
     aesKeyRaw,
     { name: "AES-GCM" },
@@ -315,7 +314,7 @@ export const decryptHybrid = async (
   }
 
   // 3️⃣ Decrypt message
-  const decrypted = await subtle.decrypt(
+  const decrypted = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
       iv: ivBuffer,

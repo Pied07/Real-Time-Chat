@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import {
   decryptPrivateKeyWithPassword,
   encryptPrivateKeyWithPassword,
-  isWebCryptoAvailable,
 } from "@/lib/EncryptDecrypt";
 
 export default function Login() {
@@ -23,13 +22,6 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      if (!isWebCryptoAvailable()) {
-        alert(
-          "E2EE needs HTTPS on other devices. Please open the app with https:// instead of http://192.168.x.x.",
-        );
-        return;
-      }
-
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
