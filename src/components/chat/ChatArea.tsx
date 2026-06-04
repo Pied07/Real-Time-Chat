@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Send,
-  Paperclip,
-  Smile,
-  X,
-  FileText,
-  User,
-  Users,
-} from "lucide-react";
+import { Send, Paperclip, Smile, X, FileText, User, Users } from "lucide-react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { EmojiClickData } from "emoji-picker-react";
@@ -24,6 +16,13 @@ import {
   doc,
   setDoc,
 } from "firebase/firestore";
+
+import {
+  encryptHybrid,
+  importPublicKey,
+  decryptHybrid,
+  importPrivateKey,
+} from "@/lib/EncryptDecrypt";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
@@ -69,6 +68,7 @@ export default function ChatArea({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const privateKeyRef = useRef<CryptoKey | null>(null);
 
   const scrollToBottom = () => {
     setTimeout(
@@ -76,6 +76,19 @@ export default function ChatArea({
       100,
     );
   };
+
+  useEffect(() => {
+    const loadKey = async () => {
+      if (!privateKeyRef.current) {
+        const keyString = localStorage.getItem("privateKey");
+        if (!keyString) return;
+
+        privateKeyRef.current = await importPrivateKey(keyString);
+      }
+    };
+
+    loadKey();
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -95,12 +108,28 @@ export default function ChatArea({
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMessages(
-        snapshot.docs.map((d) => {
+      Promise.all(
+        snapshot.docs.map(async (d) => {
           const data = d.data();
+
+          let decryptedText = "[Encrypted]";
+
+          try {
+            if (privateKeyRef.current) {
+              decryptedText = await decryptHybrid(
+                data.cipherText,
+                data.encryptedKey,
+                data.iv,
+                privateKeyRef.current,
+              );
+            }
+          } catch (e) {
+            console.log("Decryption failed:", e);
+          }
+
           return {
             id: d.id,
-            text: data.text || "",
+            text: decryptedText,
             senderId: data.senderId,
             senderName: data.senderName,
             time: new Date(
@@ -115,7 +144,7 @@ export default function ChatArea({
             fileName: data.fileName,
           };
         }),
-      );
+      ).then(setMessages);
     });
 
     return unsubscribe;
@@ -154,9 +183,22 @@ export default function ChatArea({
 
   const sendMessage = async () => {
     const text = newMessage.trim();
+
     if ((!text && !pendingFile) || !currentUser || sending) return;
 
     setSending(true);
+
+    const receiverKey = await importPublicKey(selectedUser.publicKey);
+
+    const { cipherText, encryptedKey, iv } = await encryptHybrid(
+      text,
+      receiverKey,
+    );
+    console.log("Original:", text);
+    console.log("CipherText:", cipherText);
+    console.log("EncryptedKey:", encryptedKey);
+    console.log("IV:", iv);
+
     const chatId = selectedGroup
       ? selectedGroup.id
       : [currentUser.uid, selectedUser!.uid].sort().join("_");
@@ -173,7 +215,9 @@ export default function ChatArea({
       }
 
       await addDoc(collection(db, "chats", chatId, "messages"), {
-        text,
+        cipherText,
+        encryptedKey,
+        iv,
         ...(fileUrl ? { fileUrl, fileType, fileName } : {}),
         senderId: currentUser.uid,
         senderName:
@@ -283,7 +327,7 @@ export default function ChatArea({
           >
             <Users />
           </button>
-        ): (
+        ) : (
           <button
             onClick={onOpenProfile}
             className="px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"

@@ -7,6 +7,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { generateKeyPair } from "@/lib/EncryptDecrypt";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -21,6 +22,7 @@ export default function Signup() {
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const { publicKey, privateKey } = await generateKeyPair();
 
     if (password !== confirmPassword) {
       alert("Passwords do not match");
@@ -38,12 +40,11 @@ export default function Signup() {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
 
       const user = userCredential.user;
 
-      // Create user document with friend system fields
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name: name.trim(),
@@ -54,11 +55,16 @@ export default function Signup() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
 
-        // 🔥 Friend System Fields
+        // 🔐 E2EE
+        publicKey, // ✅ STORE PUBLIC KEY
+
+        // 🔥 Friend System
         friends: [],
         incomingRequests: [],
         outgoingRequests: [],
       });
+
+      localStorage.setItem("privateKey", privateKey);
 
       alert("Account created successfully!");
       router.push("/chat");
@@ -159,16 +165,24 @@ export default function Signup() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-5 top-4 text-gray-400 hover:text-white"
                 >
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
                 </button>
               </div>
             </div>
 
             <div className="flex items-center gap-3 text-sm">
-              <input type="checkbox" className="w-4 h-4 accent-violet-500" required />
+              <input
+                type="checkbox"
+                className="w-4 h-4 accent-violet-500"
+                required
+              />
               <span className="text-gray-400">
-                I agree to the <span className="text-violet-400">Terms</span> and{" "}
-                <span className="text-violet-400">Privacy Policy</span>
+                I agree to the <span className="text-violet-400">Terms</span>{" "}
+                and <span className="text-violet-400">Privacy Policy</span>
               </span>
             </div>
 
