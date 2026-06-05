@@ -10,6 +10,8 @@ import {
   FileText,
   User,
   Users,
+  Phone,
+  Camera,
 } from "lucide-react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -33,6 +35,7 @@ import {
   decryptHybrid,
   importPrivateKey,
 } from "@/lib/EncryptDecrypt";
+import VoiceCall from "./VoiceCall"; // adjust path as needed
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
@@ -88,6 +91,8 @@ export default function ChatArea({
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const privateKeyRef = useRef<CryptoKey | null>(null);
+  const [showVoiceCall, setShowVoiceCall] = useState(false);
+  const [incomingCallData, setIncomingCallData] = useState<any>(null);
 
   const scrollToBottom = () => {
     setTimeout(
@@ -200,7 +205,7 @@ export default function ChatArea({
         if (
           data.isTyping &&
           Date.now() - (data.lastTyped?.toDate?.() || new Date()).getTime() <
-          5000 &&
+            5000 &&
           docSnap.id !== currentUser.uid
         ) {
           currentlyTyping.push(
@@ -213,6 +218,30 @@ export default function ChatArea({
 
     return unsubscribe;
   }, [selectedUser, selectedGroup, currentUser]);
+
+  // Listen for incoming calls (keep this effect)
+  useEffect(() => {
+    if (!currentUser?.uid || !selectedUser?.uid || selectedGroup) return;
+
+    const chatId = [currentUser.uid, selectedUser.uid].sort().join("_");
+    const callsCollection = collection(db, "chats", chatId, "calls");
+
+    const unsubscribe = onSnapshot(callsCollection, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const data = change.doc.data();
+        if (
+          change.type === "added" &&
+          data.callerId !== currentUser.uid &&
+          data.status === "ringing"
+        ) {
+          setIncomingCallData({ ...data, id: change.doc.id });
+          setShowVoiceCall(true);
+        }
+      });
+    });
+
+    return unsubscribe;
+  }, [currentUser, selectedUser, selectedGroup]);
 
   const sendMessage = async () => {
     const text = newMessage.trim();
@@ -382,13 +411,30 @@ export default function ChatArea({
             <Users />
           </button>
         ) : (
-          <button
-            onClick={onOpenProfile}
-            className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
-            title="View Profile"
-          >
-            <User />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => alert("Video call feature not implemented yet")}
+              className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
+              title="Start Video Call"
+            >
+              <Camera />
+            </button>
+            <button
+              onClick={() => setShowVoiceCall(true)}
+              disabled={showVoiceCall}
+              className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2 disabled:opacity-50"
+              title="Start Voice Call"
+            >
+              <Phone className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onOpenProfile}
+              className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
+              title="View Profile"
+            >
+              <User />
+            </button>
+          </div>
         )}
       </div>
 
@@ -418,10 +464,11 @@ export default function ChatArea({
                 </div>
                 {msg.text && (
                   <div
-                    className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-4 rounded-3xl text-[15px] sm:text-[16px] lg:text-[17px] leading-relaxed whitespace-pre-wrap break-words ${msg.isMe
+                    className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-4 rounded-3xl text-[15px] sm:text-[16px] lg:text-[17px] leading-relaxed whitespace-pre-wrap break-words ${
+                      msg.isMe
                         ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-tr-none"
                         : "bg-zinc-900 rounded-tl-none"
-                      }`}
+                    }`}
                   >
                     {msg.text}
                   </div>
@@ -561,6 +608,18 @@ export default function ChatArea({
           )}
         </div>
       </div>
+      <VoiceCall
+        currentUser={currentUser}
+        selectedUser={selectedUser}
+        isOpen={showVoiceCall}
+        onClose={() => {
+          setShowVoiceCall(false);
+          setIncomingCallData(null);
+        }}
+        incomingCall={incomingCallData}
+        onCallAccepted={() => setIncomingCallData(null)}
+        onCallEnded={() => setIncomingCallData(null)}
+      />
     </div>
   );
 }
