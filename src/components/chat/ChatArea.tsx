@@ -528,13 +528,13 @@ export default function ChatArea({
                   <div
                     className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-4 rounded-3xl text-[15px] sm:text-[16px] lg:text-[17px] leading-relaxed whitespace-pre-wrap break-words relative ${
                       msg.isMe
-                        ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-tr-none"
-                        : "bg-zinc-900 rounded-tl-none"
+                        ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-tr-none after:content-[''] after:absolute after:top-0 after:-right-2 after:w-2 after:h-2 after:bg-[linear-gradient(135deg,#C026D3_50%,transparent_50%)]"
+                        : "bg-zinc-900 rounded-tl-none after:content-[''] after:absolute after:top-0 after:-left-2 after:w-2 after:h-2 after:bg-[linear-gradient(45deg,transparent_50%,#18181b_50%)]"
                     }`}
                   >
                     {msg.text}
                     {msg.isMe && (
-                      <div className="absolute -bottom-4 right-4 flex justify-end">
+                      <div className="absolute -bottom-4 right-0 flex justify-end">
                         <MessageStatus status={msg.status} />
                       </div>
                     )}
