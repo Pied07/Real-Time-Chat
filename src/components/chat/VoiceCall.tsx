@@ -67,7 +67,9 @@ export default function VoiceCall({
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callDocIdRef = useRef<string | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const pendingRemoteIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const receivedIceCandidatesRef = useRef<Set<string>>(new Set());
 
   const currentUserId = currentUser?.uid ?? "";
@@ -87,6 +89,7 @@ export default function VoiceCall({
     if (remoteAudioRef.current) {
       remoteAudioRef.current.srcObject = null;
     }
+    remoteStreamRef.current = null;
 
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
@@ -94,6 +97,7 @@ export default function VoiceCall({
     }
 
     pendingIceCandidatesRef.current = [];
+    pendingRemoteIceCandidatesRef.current = [];
     receivedIceCandidatesRef.current.clear();
 
     setIsInCall(false);
@@ -115,9 +119,57 @@ export default function VoiceCall({
   }
 
   async function flushPendingIceCandidates() {
-    const candidates = pendingIceCandidatesRef.current;
+    const candidates = [...pendingIceCandidatesRef.current];
     pendingIceCandidatesRef.current = [];
-    await Promise.all(candidates.map((candidate) => addIceCandidateToCall(candidate)));
+    await Promise.all(
+      candidates.map((candidate) => addIceCandidateToCall(candidate)),
+    );
+  }
+
+  async function addRemoteIceCandidate(candidate: RTCIceCandidateInit) {
+    const candidateKey = JSON.stringify(candidate);
+    if (receivedIceCandidatesRef.current.has(candidateKey)) return;
+
+    const pc = peerConnectionRef.current;
+    if (!pc) return;
+
+    // Only add if we have a remote description (or are close to it)
+    if (!pc.remoteDescription) {
+      pendingRemoteIceCandidatesRef.current.push(candidate);
+      return;
+    }
+
+    try {
+      await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      receivedIceCandidatesRef.current.add(candidateKey);
+    } catch (error) {
+      // Ignore common errors with duplicate / already added candidates
+      if (!String(error).includes("UnknownError") && !String(error).includes("InvalidState")) {
+        console.error("Failed to add ICE candidate", error);
+      }
+    }
+  }
+
+  async function flushPendingRemoteIceCandidates() {
+    const candidates = [...pendingRemoteIceCandidatesRef.current];
+    pendingRemoteIceCandidatesRef.current = [];
+
+    for (const candidate of candidates) {
+      await addRemoteIceCandidate(candidate);
+    }
+  }
+
+  function attachRemoteStream(stream: MediaStream) {
+    remoteStreamRef.current = stream;
+    if (!remoteAudioRef.current) {
+      console.warn("Remote audio element not ready yet");
+      return;
+    }
+
+    remoteAudioRef.current.srcObject = stream;
+    remoteAudioRef.current.play().catch((err) => {
+      console.warn("Remote audio playback blocked:", err);
+    });
   }
 
   function createPeerConnection() {
@@ -125,7 +177,10 @@ export default function VoiceCall({
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:stun.stunprotocol.org:3478" },
       ],
+      iceCandidatePoolSize: 10,
     });
 
     pc.onicecandidate = (event) => {
@@ -141,13 +196,17 @@ export default function VoiceCall({
     };
 
     pc.ontrack = (event) => {
-      const remoteStream = event.streams[0];
-      if (!remoteAudioRef.current || !remoteStream) return;
+      const remoteStream = event.streams[0] || new MediaStream([event.track]);
+      if (!remoteStream) return;
+      attachRemoteStream(remoteStream);
+    };
 
-      remoteAudioRef.current.srcObject = remoteStream;
-      remoteAudioRef.current.play().catch(() => {
-        console.warn("Remote audio playback was blocked by the browser");
-      });
+    // Helpful for debugging connectivity
+    pc.oniceconnectionstatechange = () => {
+      console.log("ICE connection state:", pc.iceConnectionState);
+    };
+    pc.onconnectionstatechange = () => {
+      console.log("Peer connection state:", pc.connectionState);
     };
 
     return pc;
@@ -218,6 +277,14 @@ export default function VoiceCall({
     }
 
     await pc.setRemoteDescription(new RTCSessionDescription(incomingCall.offer));
+    await flushPendingRemoteIceCandidates();
+
+    // Add any candidates that came with the initial call data
+    if (incomingCall.iceCandidates?.length) {
+      for (const candidate of incomingCall.iceCandidates) {
+        await addRemoteIceCandidate(candidate);
+      }
+    }
 
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
@@ -260,18 +327,19 @@ export default function VoiceCall({
     if (!chatId || !isOpen || !currentUserId) return;
 
     const callsRef = collection(db, "chats", chatId, "calls");
-    const unsubscribe = onSnapshot(callsRef, (snapshot) => {
-      snapshot.docChanges().forEach(async (change) => {
+    const unsubscribe = onSnapshot(callsRef, async (snapshot) => {
+      // Process changes sequentially to avoid race conditions
+      for (const change of snapshot.docChanges()) {
         const data = change.doc.data() as CallData;
         const callId = change.doc.id;
 
-        if (callDocIdRef.current && callId !== callDocIdRef.current) return;
+        if (callDocIdRef.current && callId !== callDocIdRef.current) continue;
 
         if (data.status === "ended") {
           cleanupCall();
           onCallEnded?.();
           onClose();
-          return;
+          continue;
         }
 
         if (data.offer && data.callerId !== currentUserId && !peerConnectionRef.current) {
@@ -279,36 +347,30 @@ export default function VoiceCall({
           callDocIdRef.current = callId;
         }
 
+        // Handle answer (for caller)
         if (data.answer && peerConnectionRef.current?.localDescription) {
           const pc = peerConnectionRef.current;
           if (!pc.currentRemoteDescription) {
             try {
               await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+              await flushPendingRemoteIceCandidates();
             } catch (error) {
               console.error("Failed to set remote answer", error);
             }
           }
         }
 
-        if (data.iceCandidates && peerConnectionRef.current) {
+        // Handle ICE candidates
+        if (data.iceCandidates?.length && peerConnectionRef.current) {
           for (const candidate of data.iceCandidates) {
-            const candidateKey = JSON.stringify(candidate);
-            if (receivedIceCandidatesRef.current.has(candidateKey)) continue;
-
-            try {
-              await peerConnectionRef.current.addIceCandidate(
-                new RTCIceCandidate(candidate),
-              );
-              receivedIceCandidatesRef.current.add(candidateKey);
-            } catch (error) {
-              console.error("Failed to add ICE candidate", error);
-            }
+            await addRemoteIceCandidate(candidate);
           }
         }
-      });
+      }
     });
 
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId, currentUserId, isOpen, onCallEnded, onClose]);
 
   useEffect(() => {
@@ -322,11 +384,17 @@ export default function VoiceCall({
     if (isOpen && !initialIncomingCall && !isInCall) {
       void startOutgoingCall();
     }
-    // startOutgoingCall is intentionally driven by the modal opening.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialIncomingCall, isInCall]);
 
   useEffect(() => cleanupCall, []);
+
+  // Re-attach remote stream whenever isInCall becomes true or stream updates
+  useEffect(() => {
+    if (isInCall && remoteStreamRef.current) {
+      attachRemoteStream(remoteStreamRef.current);
+    }
+  }, [isInCall]);
 
   const formatTime = (seconds: number) =>
     `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`;
@@ -370,7 +438,8 @@ export default function VoiceCall({
             </p>
           )}
 
-          <audio ref={remoteAudioRef} autoPlay playsInline controls />
+          {/* Audio element always rendered when in call for better timing */}
+          <audio ref={remoteAudioRef} autoPlay playsInline />
         </div>
       )}
 

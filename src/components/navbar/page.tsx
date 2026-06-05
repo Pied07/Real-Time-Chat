@@ -92,6 +92,7 @@ function Navbar() {
               className="relative"
               onMouseEnter={() => setShowDropdown(true)}
               onMouseLeave={() => setShowDropdown(false)}
+              onClick={() => setShowDropdown((prev) => !prev)}
             >
               {/* Avatar Display */}
               <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20 cursor-pointer">
@@ -105,7 +106,7 @@ function Navbar() {
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center font-semibold text-lg">
-                    {initial}
+                    <span className="text-white select-none">{initial}</span>
                   </div>
                 )}
               </div>
