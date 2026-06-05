@@ -534,7 +534,7 @@ export default function ChatArea({
                   >
                     {msg.text}
                     {msg.isMe && (
-                      <div className="absolute bottom-2 right-4 flex justify-end">
+                      <div className="absolute -bottom-4 right-4 flex justify-end">
                         <MessageStatus status={msg.status} />
                       </div>
                     )}
