@@ -1,10 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { auth } from "@/lib/firebase";
+// 1. UPDATED IMPORT: pull rtdb straight out of your config module
+import { auth, db as firestoreDb, rtdb } from "@/lib/firebase"; 
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import {
+  ref,
+  onValue,
+  set,
+  onDisconnect,
+  serverTimestamp,
+} from "firebase/database";
 
 import Sidebar from "@/components/chat/Sidebar";
 import ChatArea from "@/components/chat/ChatArea";
@@ -15,6 +22,7 @@ import ProfileModal from "@/components/chat/ProfileModal";
 export default function ChatPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
+  const [presenceStatuses, setPresenceStatuses] = useState<{ [key: string]: any }>({});
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -22,7 +30,9 @@ export default function ChatPage() {
   const [showProfile, setShowProfile] = useState(false);
   const hasActiveConversation = Boolean(selectedUser || selectedGroup);
 
-  // Auth Listener
+  // 2. DELETED: "const rtdb = getDatabase();" has been safely removed from here!
+
+  // 1. Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
@@ -30,25 +40,91 @@ export default function ChatPage() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch All Users (for friends, discover, group modals)
+  // 2. Manage Current User's Presence (Broadcast Active Status & Queue Drop Handler)
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const connectedRef = ref(rtdb, ".info/connected");
+    const myPresenceRef = ref(rtdb, `presence/${currentUser.uid}`);
+
+    const unsubscribe = onValue(connectedRef, async (snap) => {
+      if (snap.val() === true) {
+        try {
+          // Setup the disconnect handler first
+          const disconnectHandler = onDisconnect(myPresenceRef);
+          await disconnectHandler.set({
+            isOnline: false,
+            lastChanged: serverTimestamp(),
+          });
+
+          // Declare online state directly after
+          await set(myPresenceRef, {
+            isOnline: true,
+            lastChanged: serverTimestamp(),
+          });
+        } catch (err) {
+          console.error("Presence status write failed:", err);
+        }
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      set(myPresenceRef, {
+        isOnline: false,
+        lastChanged: serverTimestamp(),
+      });
+    };
+  }, [currentUser]);
+
+  // 3. Fetch All Users from Firestore
   useEffect(() => {
     if (!currentUser) return;
 
     const q = query(
-      collection(db, "users"),
+      collection(firestoreDb, "users"),
       where("uid", "!=", currentUser.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const userList = snapshot.docs.map((doc) => ({
-        ...doc.data(),
-        uid: doc.id,
-      }));
+      const userList = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          ...data,
+          uid: data.uid || doc.id,
+        };
+      });
       setUsers(userList);
     });
 
     return () => unsubscribe();
   }, [currentUser]);
+
+  // 4. Real-time Status Sync from Realtime Database
+  useEffect(() => {
+    const presenceRef = ref(rtdb, "presence");
+
+    const unsubscribe = onValue(presenceRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setPresenceStatuses(snapshot.val());
+      } else {
+        setPresenceStatuses({});
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // 5. Combine Firestore User Data with Realtime Presence Data
+  const usersWithPresence = users.map((user) => ({
+    ...user,
+    isOnline: presenceStatuses[user.uid]?.isOnline || false,
+    lastChanged: presenceStatuses[user.uid]?.lastChanged || null,
+  }));
+
+  // Match the selection accurately back to our dynamic array structure 
+  const activeSelectedUser = selectedUser
+    ? usersWithPresence.find((u) => u.uid === selectedUser.uid) || selectedUser
+    : null;
 
   // Handle Group Update from Modal
   const handleGroupUpdated = (updatedGroup: any) => {
@@ -76,8 +152,8 @@ export default function ChatPage() {
       >
         <Sidebar
           currentUser={currentUser}
-          users={users}
-          selectedUser={selectedUser}
+          users={usersWithPresence} 
+          selectedUser={activeSelectedUser}
           setSelectedUser={setSelectedUser}
           selectedGroup={selectedGroup}
           setSelectedGroup={setSelectedGroup}
@@ -93,7 +169,7 @@ export default function ChatPage() {
       >
         <ChatArea
           currentUser={currentUser}
-          selectedUser={selectedUser}
+          selectedUser={activeSelectedUser}
           selectedGroup={selectedGroup}
           onBack={() => {
             setSelectedUser(null);
@@ -101,6 +177,7 @@ export default function ChatPage() {
           }}
           onOpenGroupInfo={() => setShowGroupInfo(true)}
           onOpenProfile={() => setShowProfile(true)}
+          isActive={activeSelectedUser?.isOnline || false} 
         />
       </div>
 
@@ -108,7 +185,7 @@ export default function ChatPage() {
       {showCreateGroup && (
         <CreateGroupModal
           currentUser={currentUser}
-          users={users}
+          users={usersWithPresence}
           onClose={() => setShowCreateGroup(false)}
           onGroupCreated={(group) => {
             setSelectedGroup(group);
@@ -123,16 +200,16 @@ export default function ChatPage() {
         <GroupInfoModal
           currentUser={currentUser}
           group={selectedGroup}
-          users={users}
+          users={usersWithPresence}
           onClose={() => setShowGroupInfo(false)}
           onGroupUpdated={handleGroupUpdated}
         />
       )}
 
-      {/* Profile Modal (can be implemented similarly) */}
+      {/* Profile Modal */}
       {showProfile && (
         <ProfileModal
-          selectedUser={selectedUser}
+          selectedUser={activeSelectedUser}
           onClose={() => setShowProfile(false)}
         />
       )}

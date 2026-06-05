@@ -1,9 +1,10 @@
-// lib/firebase.ts  or  firebase/config.ts
+// lib/firebase.ts or firebase/config.ts
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getDatabase } from "firebase/database"; // 👈 1. IMPORT THIS
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -13,6 +14,8 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
+  // 👈 2. ADD THIS (Next.js environment variable)
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL!, 
 };
 
 // Initialize Firebase
@@ -22,5 +25,6 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export const rtdb = getDatabase(app); // 👈 3. EXPORT THIS INSTANCE
 
 export default app;

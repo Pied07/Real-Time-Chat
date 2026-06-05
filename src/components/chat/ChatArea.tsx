@@ -12,6 +12,8 @@ import {
   Users,
   Phone,
   Camera,
+  Check,
+  CheckCheck,
 } from "lucide-react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -27,6 +29,7 @@ import {
   doc,
   setDoc,
   getDoc,
+  updateDoc,
 } from "firebase/firestore";
 
 import {
@@ -35,7 +38,7 @@ import {
   decryptHybrid,
   importPrivateKey,
 } from "@/lib/EncryptDecrypt";
-import VoiceCall from "./VoiceCall"; // adjust path as needed
+import VoiceCall from "./VoiceCall";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
@@ -49,6 +52,9 @@ interface Message {
   fileUrl?: string;
   fileType?: string;
   fileName?: string;
+  status?: "sent" | "delivered" | "read";
+  deliveredAt?: any;
+  readAt?: any;
 }
 
 interface PendingFile {
@@ -67,6 +73,7 @@ interface ChatAreaProps {
   onBack?: () => void;
   onOpenGroupInfo: () => void;
   onOpenProfile: () => void;
+  isActive: boolean;
 }
 
 export default function ChatArea({
@@ -76,6 +83,7 @@ export default function ChatArea({
   onBack,
   onOpenGroupInfo,
   onOpenProfile,
+  isActive,
 }: ChatAreaProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -127,7 +135,7 @@ export default function ChatArea({
     scrollToBottom();
   }, [messages, typingUsers]);
 
-  // Messages Listener
+  // Messages Listener + Auto mark as delivered/read
   useEffect(() => {
     if (!currentUser || (!selectedUser && !selectedGroup)) return;
 
@@ -140,8 +148,8 @@ export default function ChatArea({
       orderBy("createdAt", "asc"),
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      Promise.all(
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const processedMessages = await Promise.all(
         snapshot.docs.map(async (d) => {
           const data = d.data();
 
@@ -158,14 +166,12 @@ export default function ChatArea({
                 data.iv,
                 privateKeyRef.current,
               );
-            } else {
-              console.warn("No private key available for decryption");
             }
           } catch (e) {
             console.log("Decryption failed:", e);
           }
 
-          return {
+          const msg: Message = {
             id: d.id,
             text: decryptedText,
             senderId: data.senderId,
@@ -180,15 +186,50 @@ export default function ChatArea({
             fileUrl: data.fileUrl,
             fileType: data.fileType,
             fileName: data.fileName,
+            status: data.status || "sent",
+            deliveredAt: data.deliveredAt,
+            readAt: data.readAt,
           };
+
+          // Auto-update status for receiver (only 1:1 for now)
+          if (
+            !msg.isMe &&
+            selectedUser &&
+            !selectedGroup &&
+            (!data.deliveredAt || !data.readAt)
+          ) {
+            const messageRef = doc(db, "chats", chatId, "messages", d.id);
+
+            const updates: any = {};
+
+            if (!data.deliveredAt) {
+              updates.deliveredAt = serverTimestamp();
+              updates.status = "delivered";
+            }
+
+            // Mark as read if the chat is currently open and visible
+            // (You can improve this with IntersectionObserver later)
+            if (isActive) {
+              updates.readAt = serverTimestamp();
+              updates.status = "read";
+            }
+
+            if (Object.keys(updates).length > 0) {
+              await updateDoc(messageRef, updates).catch(console.error);
+            }
+          }
+
+          return msg;
         }),
-      ).then(setMessages);
+      );
+
+      setMessages(processedMessages);
     });
 
     return unsubscribe;
-  }, [selectedUser, selectedGroup, currentUser, privateKeyLoaded]);
+  }, [selectedUser, selectedGroup, currentUser, privateKeyLoaded, isActive]);
 
-  // Typing Indicator
+  // Typing Indicator (unchanged)
   useEffect(() => {
     if (!currentUser || (!selectedUser && !selectedGroup)) return;
 
@@ -219,7 +260,7 @@ export default function ChatArea({
     return unsubscribe;
   }, [selectedUser, selectedGroup, currentUser]);
 
-  // Incoming Call Listener
+  // Incoming Call Listener (unchanged)
   useEffect(() => {
     if (!currentUser?.uid || !selectedUser?.uid || selectedGroup) return;
 
@@ -296,6 +337,8 @@ export default function ChatArea({
         senderName:
           currentUser.displayName || currentUser.email?.split("@")[0] || "You",
         createdAt: serverTimestamp(),
+        status: "sent",           // Initial status
+        sentAt: serverTimestamp(),
       });
 
       setNewMessage("");
@@ -354,6 +397,22 @@ export default function ChatArea({
     );
   };
 
+  // Status Icon Component
+  const MessageStatus = ({ status }: { status?: string }) => {
+    if (!status) return null;
+
+    switch (status) {
+      case "sent":
+        return <Check className="w-4 h-4 text-gray-400" />;
+      case "delivered":
+        return <CheckCheck className="w-4 h-4 text-gray-400" />;
+      case "read":
+        return <CheckCheck className="w-4 h-4 text-blue-500" />;
+      default:
+        return <Check className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
   if (!selectedUser && !selectedGroup) {
     return (
       <div className="flex-1 hidden lg:flex items-center justify-center text-gray-500 text-xl bg-zinc-950">
@@ -364,7 +423,7 @@ export default function ChatArea({
 
   return (
     <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-zinc-950">
-      {/* Chat Header */}
+      {/* Chat Header - unchanged */}
       <div className="h-16 sm:h-20 border-b border-white/10 px-3 sm:px-5 lg:px-8 flex items-center justify-between flex-shrink-0">
         <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           <button
@@ -397,7 +456,9 @@ export default function ChatArea({
                 <h3 className="font-semibold text-base sm:text-xl truncate">
                   {selectedUser?.name}
                 </h3>
-                <p className="text-green-500 text-sm">Online</p>
+                <p className={`text-sm ${isActive ? "text-green-500" : "text-gray-400"}`}>
+                  {isActive ? "Online" : "Offline"}
+                </p>
               </div>
             </div>
           )}
@@ -465,13 +526,18 @@ export default function ChatArea({
                 </div>
                 {msg.text && (
                   <div
-                    className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-4 rounded-3xl text-[15px] sm:text-[16px] lg:text-[17px] leading-relaxed whitespace-pre-wrap break-words ${
+                    className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-4 rounded-3xl text-[15px] sm:text-[16px] lg:text-[17px] leading-relaxed whitespace-pre-wrap break-words relative ${
                       msg.isMe
                         ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-tr-none"
                         : "bg-zinc-900 rounded-tl-none"
                     }`}
                   >
                     {msg.text}
+                    {msg.isMe && (
+                      <div className="absolute bottom-2 right-4 flex justify-end">
+                        <MessageStatus status={msg.status} />
+                      </div>
+                    )}
                   </div>
                 )}
                 {msg.fileUrl && (
@@ -519,7 +585,7 @@ export default function ChatArea({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
+      {/* Input Area - unchanged */}
       <div className="p-3 sm:p-5 lg:p-6 border-t border-white/10 bg-zinc-950">
         <div className="bg-zinc-900 rounded-3xl px-3 sm:px-5 lg:px-6 py-3 sm:py-4 relative">
           {pendingFile && (
@@ -609,6 +675,7 @@ export default function ChatArea({
           )}
         </div>
       </div>
+
       <VoiceCall
         currentUser={currentUser}
         selectedUser={selectedUser}
