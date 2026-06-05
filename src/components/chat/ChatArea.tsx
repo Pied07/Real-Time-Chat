@@ -219,7 +219,7 @@ export default function ChatArea({
     return unsubscribe;
   }, [selectedUser, selectedGroup, currentUser]);
 
-  // Listen for incoming calls (keep this effect)
+  // Incoming Call Listener
   useEffect(() => {
     if (!currentUser?.uid || !selectedUser?.uid || selectedGroup) return;
 
@@ -229,6 +229,7 @@ export default function ChatArea({
     const unsubscribe = onSnapshot(callsCollection, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         const data = change.doc.data();
+
         if (
           change.type === "added" &&
           data.callerId !== currentUser.uid &&
@@ -618,7 +619,10 @@ export default function ChatArea({
         }}
         incomingCall={incomingCallData}
         onCallAccepted={() => setIncomingCallData(null)}
-        onCallEnded={() => setIncomingCallData(null)}
+        onCallEnded={() => {
+          setShowVoiceCall(false);
+          setIncomingCallData(null);
+        }}
       />
     </div>
   );
