@@ -12,7 +12,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 export default function Home() {
   const [showVideo, setShowVideo] = useState(false);
@@ -92,7 +92,7 @@ export default function Home() {
   ];
 
   // Glitch animation for counters
-  const glitchVariants = {
+  const glitchVariants: Variants = {
     hidden: { opacity: 0, y: 40, filter: "blur(8px)" },
     visible: (i: number) => ({
       opacity: 1,
@@ -101,7 +101,7 @@ export default function Home() {
       transition: { 
         delay: i * 0.1,
         duration: 0.8,
-        ease: [0.23, 1, 0.32, 1]
+        ease: "easeOut"
       }
     }),
     glitch: {
