@@ -404,9 +404,19 @@ export default function VoiceCall({
   return (
     <>
       {isInCall && (
-        <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center">
-          <h2 className="text-2xl mb-2">{selectedUser?.name}</h2>
-          <p className="text-green-400 mb-6">{formatTime(callDuration)}</p>
+        <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center font-mono backdrop-blur-xl bg-[radial-gradient(ellipse_at_center,#1e1b4b_0%,#000_100%)]">
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+          
+          <div className="w-32 h-32 rounded-full border-2 border-cyan-400/50 flex items-center justify-center mb-8 relative">
+             <div className="absolute inset-0 rounded-full border border-cyan-400 animate-ping opacity-20" />
+             <Mic className="w-12 h-12 text-cyan-400 animate-pulse" />
+          </div>
+
+          <h2 className="text-4xl font-bold tracking-tighter mb-4 text-white drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">{selectedUser?.name}</h2>
+          <p className="text-cyan-400 font-bold tracking-[2px] mb-12 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            SECURE LINK ACTIVE [{formatTime(callDuration)}]
+          </p>
 
           <div className="flex gap-8">
             <button
@@ -422,19 +432,19 @@ export default function VoiceCall({
                 setIsMuted(nextMuted);
               }}
               disabled={!hasLocalAudio}
-              className="p-5 bg-zinc-800 rounded-full disabled:opacity-50"
+              className={`p-6 rounded-full border transition-all ${isMuted ? 'bg-red-500/20 border-red-500/50 text-red-400' : 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500 hover:text-black shadow-[0_0_20px_rgba(34,211,238,0.2)]'} disabled:opacity-30`}
             >
-              {isMuted ? <MicOff /> : <Mic />}
+              {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
             </button>
 
-            <button onClick={endCall} className="p-5 bg-red-600 rounded-full">
-              <PhoneOff />
+            <button onClick={endCall} className="p-6 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-colors">
+              <PhoneOff className="w-6 h-6" />
             </button>
           </div>
 
           {!hasLocalAudio && (
-            <p className="text-yellow-400 mt-2 text-sm">
-              Microphone not available (Listen-only mode)
+            <p className="text-yellow-400 mt-8 text-xs font-bold tracking-[1px] uppercase bg-yellow-400/10 px-4 py-2 rounded-full border border-yellow-400/30">
+              Microphone offline (Listen-only mode)
             </p>
           )}
 
@@ -444,23 +454,30 @@ export default function VoiceCall({
       )}
 
       {!isInCall && incomingCall && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
-          <div className="bg-zinc-900 p-8 rounded-2xl text-center">
-            <h3 className="text-xl mb-4">
-              {incomingCall.callerName || "Someone"} is calling...
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center font-mono">
+          <div className="bg-zinc-950/90 border border-cyan-500/30 p-8 rounded-3xl text-center shadow-[0_0_50px_rgba(34,211,238,0.1)] max-w-sm w-full">
+            <div className="w-20 h-20 mx-auto rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/50 mb-6 relative">
+               <div className="absolute inset-0 rounded-full border border-cyan-400 animate-ping opacity-30" />
+               <PhoneOff className="w-8 h-8 text-cyan-400 animate-pulse" />
+            </div>
+            <h3 className="text-xl font-bold tracking-tighter mb-2 text-white">
+              {incomingCall.callerName || "Unknown Node"}
             </h3>
+            <p className="text-cyan-400 text-xs font-bold tracking-[2px] uppercase mb-8">
+              Incoming Transmission...
+            </p>
 
             <div className="flex gap-4">
               <button
                 onClick={endCall}
-                className="px-6 py-3 bg-zinc-700 rounded-xl"
+                className="flex-1 py-4 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white rounded-2xl text-xs font-bold tracking-[2px] uppercase transition-all"
               >
-                Decline
+                Reject
               </button>
 
               <button
                 onClick={acceptIncomingCall}
-                className="px-6 py-3 bg-green-600 rounded-xl"
+                className="flex-1 py-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-black rounded-2xl text-xs font-bold tracking-[2px] uppercase transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)]"
               >
                 Accept
               </button>

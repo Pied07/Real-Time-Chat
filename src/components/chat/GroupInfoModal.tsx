@@ -128,11 +128,11 @@ export default function GroupInfoModal({
   );
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="relative bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col m-8">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 font-mono">
+      <div className="relative bg-zinc-950/80 border border-cyan-500/30 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col m-8 shadow-[0_0_50px_rgba(34,211,238,0.1)]">
         {/* Header */}
-        <div className="flex justify-between items-center p-8 border-b border-white/10">
-          <h2 className="text-3xl font-bold">Group Info</h2>
+        <div className="flex justify-between items-center p-8 border-b border-white/10 bg-black/50">
+          <h2 className="text-3xl font-bold tracking-tighter bg-gradient-to-r from-white to-cyan-300 bg-clip-text text-transparent">Group Info</h2>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-4xl text-gray-400 hover:text-white transition-colors"
@@ -144,20 +144,20 @@ export default function GroupInfoModal({
         <div className="flex-1 overflow-y-auto p-8">
           {/* Group Name */}
           <div className="mb-8">
-            <p className="text-sm text-gray-400 mb-1">GROUP NAME</p>
-            <p className="text-2xl font-semibold">{group.name}</p>
+            <p className="text-xs font-bold tracking-[2px] uppercase text-cyan-400/50 mb-2">Group Designation</p>
+            <p className="text-3xl font-bold text-white">{group.name}</p>
           </div>
 
           {/* Description */}
           <div className="mb-10">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-gray-400">DESCRIPTION</p>
+            <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
+              <p className="text-xs font-bold tracking-[2px] uppercase text-cyan-400/50">Mission Parameters</p>
               {isAdmin && !editingDescription && (
                 <button
                   onClick={() => setEditingDescription(true)}
-                  className="text-violet-400 hover:text-violet-300 flex items-center gap-1 text-sm"
+                  className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-xs font-bold tracking-[1px] uppercase transition-colors"
                 >
-                  <Edit2 size={16} /> Edit
+                  <Edit2 size={14} /> Edit Parameters
                 </button>
               )}
             </div>
@@ -171,10 +171,10 @@ export default function GroupInfoModal({
                       setDescriptionDraft(e.target.value);
                     }
                   }}
-                  className="w-full bg-zinc-800 border border-white/10 rounded-2xl px-5 py-4 min-h-[120px] focus:outline-none focus:border-violet-500"
+                  className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-4 min-h-[120px] focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.1)] transition-all placeholder:text-zinc-600 text-white"
                 />
-                <div className="flex justify-between text-sm">
-                  <span className={descriptionDraft.length > 180 ? "text-orange-400" : "text-gray-500"}>
+                <div className="flex justify-between text-xs font-bold tracking-[1px] uppercase">
+                  <span className={descriptionDraft.length > 180 ? "text-red-400 animate-pulse" : "text-zinc-500"}>
                     {descriptionDraft.length} / {MAX_DESCRIPTION_LENGTH}
                   </span>
                   <div className="flex gap-3">
@@ -183,15 +183,15 @@ export default function GroupInfoModal({
                         setEditingDescription(false);
                         setDescriptionDraft(group.description || "");
                       }}
-                      className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-2xl"
+                      className="px-6 py-2 bg-black/50 border border-white/10 hover:bg-zinc-900 text-zinc-400 rounded-2xl transition-all"
                     >
-                      Cancel
+                      Abort
                     </button>
                     <button
                       onClick={saveDescription}
-                      className="px-6 py-2 bg-violet-600 hover:bg-violet-700 rounded-2xl"
+                      className="px-6 py-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-black shadow-[0_0_15px_rgba(34,211,238,0.1)] rounded-2xl transition-all"
                     >
-                      Save
+                      Commit
                     </button>
                   </div>
                 </div>
@@ -205,16 +205,16 @@ export default function GroupInfoModal({
 
           {/* Members Section */}
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <p className="font-semibold text-lg">
-                Members ({group.members.length})
+            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-2">
+              <p className="text-xs font-bold tracking-[2px] uppercase text-cyan-400/50">
+                Operatives ({group.members.length})
               </p>
               {isAdmin && (
                 <button
                   onClick={() => setShowAddMember(true)}
-                  className="flex items-center gap-2 text-violet-400 hover:text-violet-300 text-sm"
+                  className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-xs font-bold tracking-[1px] uppercase transition-colors"
                 >
-                  <UserPlus size={18} /> Add Member
+                  <UserPlus size={16} /> Add Operative
                 </button>
               )}
             </div>
@@ -233,23 +233,23 @@ export default function GroupInfoModal({
                 return (
                   <div
                     key={uid}
-                    className="flex items-center justify-between bg-zinc-800/50 hover:bg-zinc-800 p-5 rounded-2xl group"
+                    className="flex items-center justify-between bg-black/30 border border-white/5 hover:border-cyan-400/30 hover:bg-cyan-500/5 p-5 rounded-2xl group transition-all"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-zinc-700 rounded-2xl flex items-center justify-center text-xl font-semibold">
+                      <div className="w-12 h-12 bg-gradient-to-br from-zinc-800 to-black border border-white/10 rounded-2xl flex items-center justify-center text-xl font-bold text-zinc-500">
                         {member.name?.[0]?.toUpperCase() || "?"}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="font-medium">{member.name}</p>
+                          <p className="font-bold text-white tracking-tight">{member.name}</p>
                           {isGroupAdmin && (
-                            <span className="text-xs px-3 py-1 bg-violet-500/20 text-violet-400 rounded-full border border-violet-500/30">
+                            <span className="text-[10px] font-bold tracking-[1px] uppercase px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full border border-cyan-500/30">
                               Admin
                             </span>
                           )}
-                          {isCurrentUser && <span className="text-xs text-gray-500">(You)</span>}
+                          {isCurrentUser && <span className="text-xs text-zinc-500 font-mono">(You)</span>}
                         </div>
-                        <p className="text-sm text-gray-500">{member.email}</p>
+                        <p className="text-xs text-zinc-500 font-mono tracking-tight">{member.email}</p>
                       </div>
                     </div>
 
@@ -259,7 +259,7 @@ export default function GroupInfoModal({
                         {!isGroupAdmin ? (
                           <button
                             onClick={() => promoteToAdmin(uid)}
-                            className="p-3 text-violet-400 hover:bg-violet-500/10 rounded-xl"
+                            className="p-3 text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300 rounded-xl transition-colors"
                             title="Promote to Admin"
                           >
                             <UserCheck size={20} />
@@ -293,9 +293,9 @@ export default function GroupInfoModal({
 
       {/* Add Member Modal (Nested) */}
       {showAddMember && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
-          <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-lg m-8 p-8">
-            <h3 className="text-2xl font-bold mb-6">Add Member</h3>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] font-mono">
+          <div className="bg-zinc-950/90 border border-cyan-500/30 rounded-3xl w-full max-w-lg m-8 p-8 shadow-[0_0_50px_rgba(34,211,238,0.1)]">
+            <h3 className="text-xl font-bold tracking-[2px] uppercase text-cyan-400 mb-6">Add Operative</h3>
 
             {availableUsers.length === 0 ? (
               <p className="text-center text-gray-400 py-10">All users are already in this group.</p>
@@ -305,16 +305,16 @@ export default function GroupInfoModal({
                   <button
                     key={user.uid}
                     onClick={() => addMember(user.uid)}
-                    className="w-full flex items-center gap-4 p-5 hover:bg-white/5 rounded-2xl text-left"
+                    className="w-full flex items-center gap-4 p-4 border border-transparent hover:border-cyan-400/30 hover:bg-cyan-500/5 rounded-2xl text-left transition-all"
                   >
-                    <div className="w-12 h-12 bg-zinc-700 rounded-2xl flex items-center justify-center text-xl">
+                    <div className="w-12 h-12 bg-gradient-to-br from-zinc-800 to-black border border-white/10 rounded-2xl flex items-center justify-center text-xl font-bold text-zinc-500">
                       {user.name?.[0]}
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="font-bold text-white">{user.name}</p>
+                      <p className="text-xs text-zinc-500 font-mono tracking-tight">{user.email}</p>
                     </div>
-                    <UserPlus className="text-violet-400" />
+                    <UserPlus className="text-cyan-400" />
                   </button>
                 ))}
               </div>
@@ -322,9 +322,9 @@ export default function GroupInfoModal({
 
             <button
               onClick={() => setShowAddMember(false)}
-              className="mt-6 w-full py-4 bg-zinc-800 hover:bg-zinc-700 rounded-2xl"
+              className="mt-6 w-full py-4 bg-black/50 border border-white/10 hover:bg-zinc-900 text-zinc-400 rounded-2xl text-xs font-bold tracking-[2px] uppercase transition-all"
             >
-              Close
+              Abort
             </button>
           </div>
         </div>

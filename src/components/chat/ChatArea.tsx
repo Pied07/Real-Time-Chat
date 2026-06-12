@@ -424,7 +424,7 @@ export default function ChatArea({
   return (
     <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-zinc-950">
       {/* Chat Header - unchanged */}
-      <div className="h-16 sm:h-20 border-b border-white/10 px-3 sm:px-5 lg:px-8 flex items-center justify-between flex-shrink-0">
+      <div className="h-16 sm:h-20 border-b border-white/10 px-3 sm:px-5 lg:px-8 flex items-center justify-between flex-shrink-0 bg-zinc-950/80 backdrop-blur-xl relative z-20 shadow-[0_5px_30px_rgba(34,211,238,0.05)]">
         <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           <button
             onClick={onBack}
@@ -435,7 +435,7 @@ export default function ChatArea({
           </button>
           {selectedGroup ? (
             <>
-              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0">
                 👥
               </div>
               <div className="min-w-0">
@@ -449,14 +449,14 @@ export default function ChatArea({
             </>
           ) : (
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-zinc-700 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-zinc-800 to-black border border-white/10 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0 text-zinc-500">
                 {selectedUser?.name?.[0]?.toUpperCase() || "?"}
               </div>
               <div className="min-w-0">
                 <h3 className="font-semibold text-base sm:text-xl truncate">
                   {selectedUser?.name}
                 </h3>
-                <p className={`text-sm ${isActive ? "text-green-500" : "text-gray-400"}`}>
+                <p className={`text-xs font-bold uppercase tracking-[1px] ${isActive ? "text-emerald-400" : "text-zinc-500"}`}>
                   {isActive ? "Online" : "Offline"}
                 </p>
               </div>
@@ -467,7 +467,7 @@ export default function ChatArea({
         {selectedGroup ? (
           <button
             onClick={onOpenGroupInfo}
-            className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
+            className="px-3 sm:px-5 py-2.5 text-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-2xl transition-all flex items-center gap-2 border border-transparent hover:border-cyan-400/30"
             title="View Group Info"
           >
             <Users />
@@ -476,7 +476,7 @@ export default function ChatArea({
           <div className="flex items-center gap-2">
             <button
               onClick={() => alert("Video call feature not implemented yet")}
-              className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
+              className="px-3 sm:px-5 py-2.5 text-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-2xl transition-all flex items-center gap-2 border border-transparent hover:border-cyan-400/30"
               title="Start Video Call"
             >
               <Camera />
@@ -484,14 +484,14 @@ export default function ChatArea({
             <button
               onClick={() => setShowVoiceCall(true)}
               disabled={showVoiceCall}
-              className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2 disabled:opacity-50"
+              className="px-3 sm:px-5 py-2.5 text-emerald-400/50 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-2xl transition-all flex items-center gap-2 border border-transparent hover:border-emerald-400/30 disabled:opacity-50"
               title="Start Voice Call"
             >
               <Phone className="w-5 h-5" />
             </button>
             <button
               onClick={onOpenProfile}
-              className="px-3 sm:px-5 py-2.5 text-gray-400 hover:text-white rounded-2xl transition-all flex items-center gap-2"
+              className="px-3 sm:px-5 py-2.5 text-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-2xl transition-all flex items-center gap-2 border border-transparent hover:border-cyan-400/30"
               title="View Profile"
             >
               <User />
@@ -501,7 +501,10 @@ export default function ChatArea({
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 p-3 sm:p-5 lg:p-8 overflow-y-auto space-y-5 sm:space-y-7 lg:space-y-8 scrollbar-hide">
+      <div className="flex-1 p-3 sm:p-5 lg:p-8 overflow-y-auto space-y-5 sm:space-y-7 lg:space-y-8 scrollbar-hide bg-transparent relative z-10">
+        <div className="fixed inset-0 bg-[linear-gradient(rgba(34,211,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-[-1]" />
+        {/* Animated scanner line */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-cyan-400/50 shadow-[0_0_10px_#22d3ee] animate-[scan_6s_ease-in-out_infinite] z-[-1]" />
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-gray-500">
             <div className="text-6xl mb-4">👋</div>
@@ -514,22 +517,22 @@ export default function ChatArea({
               className={`flex ${msg.isMe ? "justify-end" : "justify-start"}`}
             >
               {!msg.isMe && (
-                <div className="w-9 h-9 rounded-2xl mr-3 mt-1 bg-zinc-700 flex items-center justify-center text-lg">
+                <div className="w-9 h-9 rounded-2xl mr-3 mt-1 bg-gradient-to-br from-zinc-800 to-black border border-white/10 flex items-center justify-center text-lg text-zinc-500 shadow-md">
                   {msg.senderName?.[0]?.toUpperCase() || "?"}
                 </div>
               )}
               <div className="max-w-[82%] sm:max-w-[72%] lg:max-w-[65%] min-w-0">
                 <div
-                  className={`text-xs text-gray-500 mb-1.5 px-2 ${msg.isMe ? "text-right" : ""}`}
+                  className={`text-[10px] font-bold tracking-[1px] uppercase text-zinc-500 mb-1.5 px-2 ${msg.isMe ? "text-right" : ""}`}
                 >
                   {msg.isMe ? "You" : msg.senderName} • {msg.time}
                 </div>
                 {msg.text && (
                   <div
-                    className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-4 rounded-3xl text-[15px] sm:text-[16px] lg:text-[17px] leading-relaxed whitespace-pre-wrap break-words relative ${
+                    className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-4 rounded-3xl text-[14px] sm:text-[15px] lg:text-[16px] leading-relaxed whitespace-pre-wrap break-words relative shadow-[0_0_15px_rgba(34,211,238,0.05)] ${
                       msg.isMe
-                        ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-tr-none after:content-[''] after:absolute after:top-0 after:-right-2 after:w-2 after:h-2 after:bg-[linear-gradient(135deg,#C026D3_50%,transparent_50%)]"
-                        : "bg-zinc-900 rounded-tl-none after:content-[''] after:absolute after:top-0 after:-left-2 after:w-2 after:h-2 after:bg-[linear-gradient(45deg,transparent_50%,#18181b_50%)]"
+                        ? "bg-gradient-to-br from-cyan-600/90 to-blue-700/90 backdrop-blur-md text-white rounded-br-sm border border-cyan-400/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
+                        : "bg-black/60 backdrop-blur-xl rounded-bl-sm border border-cyan-500/20 text-cyan-50"
                     }`}
                   >
                     {msg.text}
@@ -568,17 +571,8 @@ export default function ChatArea({
 
         {typingUsers.length > 0 && (
           <div className="flex justify-start">
-            <div className="bg-zinc-900 rounded-3xl px-6 py-4 text-gray-400 flex">
-              Typing
-              <span className="flex ml-1 gap-1">
-                <span className="animate-bounce text-2xl">.</span>
-                <span className="animate-bounce [animation-delay:150ms] text-2xl">
-                  .
-                </span>
-                <span className="animate-bounce [animation-delay:300ms] text-2xl">
-                  .
-                </span>
-              </span>
+            <div className="bg-zinc-900/50 backdrop-blur-md rounded-3xl px-6 py-4 text-cyan-400 flex items-center gap-2 border border-cyan-400/20 text-xs font-bold uppercase tracking-[1px] shadow-lg">
+              <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" /> Signal incoming...
             </div>
           </div>
         )}
@@ -586,8 +580,8 @@ export default function ChatArea({
       </div>
 
       {/* Input Area - unchanged */}
-      <div className="p-3 sm:p-5 lg:p-6 border-t border-white/10 bg-zinc-950">
-        <div className="bg-zinc-900 rounded-3xl px-3 sm:px-5 lg:px-6 py-3 sm:py-4 relative">
+      <div className="p-3 sm:p-5 lg:p-6 border-t border-white/10 bg-zinc-950/80 backdrop-blur-xl relative z-20">
+        <div className="bg-black/60 border border-white/10 rounded-3xl px-3 sm:px-5 lg:px-6 py-3 sm:py-4 relative shadow-[0_0_20px_rgba(34,211,238,0.05)] focus-within:shadow-[0_0_30px_rgba(34,211,238,0.1)] focus-within:border-cyan-400/30 transition-all">
           {pendingFile && (
             <div className="mb-4 flex items-center gap-4 bg-zinc-950 p-4 rounded-2xl border border-white/10">
               {pendingFile.previewUrl ? (
@@ -625,7 +619,7 @@ export default function ChatArea({
                   e.target.files?.[0] && handleFileSelect(e.target.files[0])
                 }
               />
-              <Paperclip className="w-6 h-6 text-gray-400 hover:text-white" />
+              <Paperclip className="w-6 h-6 text-zinc-500 hover:text-cyan-400 transition-colors" />
             </label>
 
             <button
@@ -633,7 +627,7 @@ export default function ChatArea({
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               className="p-2 mt-1 flex-shrink-0"
             >
-              <Smile className="w-6 h-6 text-gray-400 hover:text-white" />
+              <Smile className="w-6 h-6 text-zinc-500 hover:text-cyan-400 transition-colors" />
             </button>
 
             <textarea
@@ -647,15 +641,15 @@ export default function ChatArea({
                 !e.shiftKey &&
                 (e.preventDefault(), sendMessage())
               }
-              placeholder="Type a message..."
-              className="min-w-0 flex-1 bg-transparent outline-none text-base sm:text-lg placeholder:text-gray-500 resize-none py-3 max-h-32 scrollbar-hide"
+              placeholder="Input transmission..."
+              className="min-w-0 flex-1 bg-transparent outline-none text-base sm:text-lg placeholder:text-zinc-600 resize-none py-3 max-h-32 scrollbar-hide text-white"
               rows={1}
             />
 
             <button
               onClick={sendMessage}
               disabled={(!newMessage.trim() && !pendingFile) || sending}
-              className="self-end p-2 sm:p-3 text-violet-400 hover:text-violet-300 disabled:opacity-50 flex-shrink-0"
+              className="self-end p-2 sm:p-3 text-cyan-400 hover:text-cyan-300 disabled:opacity-30 disabled:hover:text-cyan-400 flex-shrink-0 transition-colors"
             >
               <Send className="w-6 h-6" />
             </button>

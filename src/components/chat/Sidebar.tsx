@@ -236,7 +236,7 @@ export default function Sidebar({
   return (
     <div
       ref={sidebarRef}
-      className="w-full lg:w-[var(--sidebar-width)] border-r border-white/10 bg-zinc-950 flex flex-col relative"
+      className="w-full lg:w-[var(--sidebar-width)] border-r border-white/10 bg-zinc-950/60 backdrop-blur-3xl flex flex-col relative z-10 shadow-[0_0_30px_rgba(34,211,238,0.05)]"
       style={
         { "--sidebar-width": `${sidebarWidth}px` } as CSSProperties
       }
@@ -244,15 +244,15 @@ export default function Sidebar({
       {/* Header */}
       <div className="p-4 sm:p-5 border-b border-white/10">
         <div className="flex justify-between items-center mb-5 sm:mb-6">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl flex items-center justify-center">
-              <MessageCircle className="w-5 h-5" />
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.3)] group-hover:scale-110 transition-transform">
+              <MessageCircle className="w-5 h-5 text-black" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tighter">Pulse</h1>
+            <h1 className="text-2xl font-bold tracking-tighter bg-gradient-to-r from-white to-cyan-300 bg-clip-text text-transparent">Pulse</h1>
           </Link>
           <button
             onClick={onCreateGroup}
-            className="w-9 h-9 bg-violet-600 hover:bg-violet-700 rounded-xl flex items-center justify-center transition-colors"
+            className="w-9 h-9 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl border border-cyan-500/30 flex items-center justify-center transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]"
           >
             <UserPlus className="w-5 h-5" />
           </button>
@@ -265,10 +265,10 @@ export default function Sidebar({
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
-            className={`min-w-20 flex-1 py-3.5 sm:py-4 text-sm font-medium transition-colors ${
+            className={`min-w-20 flex-1 py-3.5 sm:py-4 text-[10px] font-bold tracking-[2px] uppercase transition-all ${
               activeTab === tab
-                ? "text-white border-b-2 border-violet-500"
-                : "text-gray-400 hover:text-gray-200"
+                ? "text-cyan-400 border-b-2 border-cyan-400 bg-cyan-400/5 shadow-[inset_0_-20px_20px_-20px_rgba(34,211,238,0.2)]"
+                : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
             }`}
           >
             {tab === "chats"
@@ -289,7 +289,7 @@ export default function Sidebar({
               placeholder="Search groups..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-zinc-900 border border-white/10 rounded-2xl pl-11 py-3 text-sm focus:outline-none focus:border-violet-500"
+              className="w-full bg-black/50 border border-white/10 rounded-2xl pl-11 py-3 text-sm focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.1)] transition-all placeholder:text-zinc-600"
             />
           </div>
         </div>
@@ -305,7 +305,7 @@ export default function Sidebar({
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-zinc-900 border border-white/10 rounded-2xl pl-11 py-3 text-sm focus:outline-none focus:border-violet-500"
+              className="w-full bg-black/50 border border-white/10 rounded-2xl pl-11 py-3 text-sm focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.1)] transition-all placeholder:text-zinc-600"
             />
           </div>
         </div>
@@ -319,7 +319,7 @@ export default function Sidebar({
               placeholder="Search friends..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-zinc-900 border border-white/10 rounded-2xl pl-11 py-3 text-sm focus:outline-none focus:border-violet-500"
+              className="w-full bg-black/50 border border-white/10 rounded-2xl pl-11 py-3 text-sm focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.1)] transition-all placeholder:text-zinc-600"
             />
           </div>
         </div>
@@ -334,7 +334,7 @@ export default function Sidebar({
               placeholder="Search chats..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-zinc-900 border border-white/10 rounded-2xl pl-11 py-3 text-sm focus:outline-none focus:border-violet-500"
+              className="w-full bg-black/50 border border-white/10 rounded-2xl pl-11 py-3 text-sm focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.1)] transition-all placeholder:text-zinc-600"
             />
           </div>
         </div>
@@ -357,8 +357,8 @@ export default function Sidebar({
                     setSelectedGroup(null);
                     setSelectedUser(user);
                   }}
-                  className={`px-4 sm:px-5 py-4 flex gap-3 sm:gap-4 hover:bg-white/5 cursor-pointer transition-colors ${
-                    isSelected ? "bg-white/10" : ""
+                  className={`px-4 sm:px-5 py-4 flex gap-3 sm:gap-4 hover:bg-cyan-500/5 hover:border-l-2 hover:border-l-cyan-400 border-l-2 border-l-transparent cursor-pointer transition-all ${
+                    isSelected ? "bg-cyan-500/10 border-l-cyan-400" : ""
                   }`}
                 >
                   <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0">
@@ -371,7 +371,7 @@ export default function Sidebar({
                         className="object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-xl font-bold">
+                      <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-black flex items-center justify-center text-zinc-500 text-xl font-bold border border-white/5">
                         {user.name?.[0] || "?"}
                       </div>
                     )}
@@ -403,12 +403,12 @@ export default function Sidebar({
                     setSelectedUser(null);
                     setSelectedGroup(group);
                   }}
-                  className={`px-4 sm:px-5 py-4 flex gap-3 sm:gap-4 hover:bg-white/5 cursor-pointer transition-colors ${
-                    isSelected ? "bg-white/10" : ""
+                  className={`px-4 sm:px-5 py-4 flex gap-3 sm:gap-4 hover:bg-cyan-500/5 hover:border-l-2 hover:border-l-cyan-400 border-l-2 border-l-transparent cursor-pointer transition-all ${
+                    isSelected ? "bg-cyan-500/10 border-l-cyan-400" : ""
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
-                    <Users className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                    <Users className="w-5 h-5 text-cyan-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate">{group.name}</p>
@@ -431,9 +431,9 @@ export default function Sidebar({
             filteredFriends.map((user) => (
               <div
                 key={user.uid}
-                className="px-4 sm:px-5 py-4 flex gap-3 sm:gap-4 hover:bg-white/5 group"
+                className="px-4 sm:px-5 py-4 flex gap-3 sm:gap-4 hover:bg-cyan-500/5 hover:border-l-2 hover:border-l-cyan-400 border-l-2 border-l-transparent transition-all group"
               >
-                <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0">
+                <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border border-white/5">
                   {user.avatar ? (
                     <Image
                       src={user.avatar}
@@ -443,7 +443,7 @@ export default function Sidebar({
                       className="object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-xl font-bold">
+                    <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-black flex items-center justify-center text-zinc-500 text-xl font-bold">
                       {user.name?.[0] || "?"}
                     </div>
                   )}
@@ -483,7 +483,7 @@ export default function Sidebar({
                         className="object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-zinc-700 flex items-center justify-center text-xl font-bold">
+                      <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-black flex items-center justify-center text-xl font-bold text-zinc-500">
                         {user.name?.[0] || "?"}
                       </div>
                     )}
@@ -496,13 +496,13 @@ export default function Sidebar({
                 <div className="flex gap-3">
                   <button
                     onClick={() => acceptRequest(user.uid)}
-                    className="flex-1 py-3 bg-green-600 hover:bg-green-700 rounded-2xl font-medium transition-colors"
+                    className="flex-1 py-3 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 rounded-2xl text-xs font-bold uppercase tracking-[1px] transition-all"
                   >
                     Accept
                   </button>
                   <button
                     onClick={() => rejectRequest(user.uid)}
-                    className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-medium transition-colors"
+                    className="flex-1 py-3 bg-zinc-800/50 text-zinc-400 border border-white/10 hover:bg-zinc-800 rounded-2xl text-xs font-bold uppercase tracking-[1px] transition-all"
                   >
                     Reject
                   </button>
@@ -527,7 +527,7 @@ export default function Sidebar({
               return (
                 <div
                   key={user.uid}
-                  className="px-4 sm:px-5 py-4 flex gap-3 justify-between items-center hover:bg-white/5 group"
+                  className="px-4 sm:px-5 py-4 flex gap-3 justify-between items-center hover:bg-cyan-500/5 hover:border-l-2 hover:border-l-cyan-400 border-l-2 border-l-transparent transition-all group"
                 >
                   <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                     <div className="w-12 h-12 rounded-2xl overflow-hidden">
@@ -540,7 +540,7 @@ export default function Sidebar({
                           className="object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-zinc-700 to-zinc-800 flex items-center justify-center text-xl font-bold">
+                        <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-black flex items-center justify-center text-xl font-bold text-zinc-500 border border-white/5">
                           {user.name?.[0] || "?"}
                         </div>
                       )}
@@ -557,10 +557,10 @@ export default function Sidebar({
                         ? cancelFriendRequest(user.uid)
                         : sendFriendRequest(user.uid)
                     }
-                    className={`flex shrink-0 items-center gap-2 px-3 sm:px-5 py-2.5 rounded-2xl text-sm font-medium transition-all ${
+                    className={`flex shrink-0 items-center gap-2 px-3 sm:px-5 py-2.5 rounded-2xl text-xs font-bold tracking-[1px] uppercase transition-all ${
                       isRequested
-                        ? "bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                        : "border border-violet-500 text-violet-400 hover:bg-violet-500 hover:text-white"
+                        ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30"
+                        : "border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]"
                     }`}
                   >
                     {isRequested ? (
@@ -581,7 +581,7 @@ export default function Sidebar({
 
       {/* Resize Handle */}
       <div
-        className="hidden lg:block absolute right-0 top-0 bottom-0 w-1 bg-transparent hover:bg-violet-500 cursor-col-resize"
+        className="hidden lg:block absolute right-0 top-0 bottom-0 w-1 bg-transparent hover:bg-cyan-400 cursor-col-resize transition-colors"
         onMouseDown={handleMouseDown}
       />
     </div>

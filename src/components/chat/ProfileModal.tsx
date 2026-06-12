@@ -34,8 +34,8 @@ function ProfileModal({ selectedUser, onClose }: ProfileModalProps) {
 
   console.log("Profile User:", profileUser);
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="relative bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-md p-8 m-8">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 font-mono">
+      <div className="relative bg-zinc-950/80 border border-cyan-500/30 rounded-3xl w-full max-w-md p-8 m-8 shadow-[0_0_50px_rgba(34,211,238,0.1)]">
         {profileUser?.avatar ? (
           <img
             src={profileUser.avatar}
@@ -43,20 +43,22 @@ function ProfileModal({ selectedUser, onClose }: ProfileModalProps) {
             className="w-20 h-20 rounded-full object-cover mx-auto mb-4"
           />
         ) : (
-          <div className="w-20 h-20 rounded-full mx-auto bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-4xl font-bold">
+          <div className="w-24 h-24 rounded-full mx-auto bg-gradient-to-br from-zinc-800 to-black border-2 border-cyan-400/30 flex items-center justify-center text-zinc-500 text-4xl font-bold shadow-[0_0_20px_rgba(34,211,238,0.2)]">
             {profileUser?.name?.[0] || "?"}
           </div>
         )}
-        <div className="text-center m-4">
-            <span className="text-4xl font-bold">{profileUser?.name}</span>
-            <p className="text-gray-400">{profileUser?.email}</p>
+        <div className="text-center mt-6 mb-6">
+            <h2 className="text-3xl font-bold tracking-tighter text-white">{profileUser?.name}</h2>
+            <p className="text-cyan-400/70 text-sm mt-1">{profileUser?.email}</p>
         </div>
-        <div className="text-center bg-zinc-800 border border-white/10 rounded-2xl p-4">
-            <p className="text-gray-400">{profileUser?.bio || "No bio available"}</p>
+        <div className="text-center bg-black/50 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
+            <p className="text-xs font-bold tracking-[2px] uppercase text-zinc-500 mb-2">Operator Status</p>
+            <p className="text-zinc-300 italic">"{profileUser?.bio || "No status available."}"</p>
         </div>
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-violet-600 hover:text-violet-700 rounded-2xl transition-all"
+          className="absolute top-4 right-4 text-zinc-500 hover:text-cyan-400 rounded-2xl transition-all"
         >
           <X />
         </button>
